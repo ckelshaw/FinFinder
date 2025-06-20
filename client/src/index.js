@@ -7,8 +7,8 @@ import bootstrap from 'bootstrap/dist/css/bootstrap.min.css';
 import { ClerkProvider } from '@clerk/clerk-react';
 
 // Importing Publishable Key for Clerk
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-console.log('Clerk Publishable Key:', import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+const PUBLISHABLE_KEY = import.meta.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
+console.log('Clerk Publishable Key:', import.meta.env.REACT_APP_CLERK_PUBLISHABLE_KEY);
 if (!PUBLISHABLE_KEY) {
   console.error('Clerk Publishable Key is not defined. Please set VITE_CLERK_PUBLISHABLE_KEY in your .env file.');
 }
