@@ -1,7 +1,7 @@
 import React from "react";
 import { UserButton } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
-import logo from '../Assets/FinFinder_Logo.png';
+import logo from "./Assets/FinFinder_Logo.png";
 
 function Navbar() {
     return (

@@ -2,9 +2,10 @@ import './App.css';
 import { useUser } from '@clerk/clerk-react';
 import { React, useEffect } from 'react';
 import axios from 'axios';
+import logo from './Assets/FinFinder_Logo.png';
 
 //Importing pages
-import { Navbar } from '../src/Components/Navbar';
+import Navbar from './Navbar';
 
 function Dashboard() {
 
@@ -28,6 +29,7 @@ function Dashboard() {
     <>
     <Navbar/>
     <div className='container mt-4'>
+      <img src={logo} alt="Fin Finder Logo"></img>
       <h1>Cool stuff will go here.</h1>
     </div>
     </>
