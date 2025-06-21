@@ -4,15 +4,14 @@ import supabase from '../supabaseClient.js';
 const router = express.Router();
 
 router.post('/', async (req, res) => {
-    console.log('/api/users route hit');
-    const { id, username, first_name, last_name} = req.body;
+    const { clerk_user_id, username, first_name, last_name} = req.body;
 
     try {
         //Checking if user exists
         const { data: existingUser, error: selectError } = await supabase
             .from('users')
             .select('*')
-            .eq('id', id)
+            .eq('id', clerk_user_id)
             .single();
 
         if(selectError && selectError.code !== 'PGRST116') {
@@ -27,7 +26,9 @@ router.post('/', async (req, res) => {
         //If the user didn't already exist add the new user
         const { data, error: insertError } = await supabase
             .from('users')
-            .insert([{id, username, first_name, last_name}])
+            .insert([
+                {id: clerk_user_id, first_name: first_name, last_name: last_name, username: username}
+            ])
             .select();
 
         if(insertError) throw insertError;

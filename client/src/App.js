@@ -7,6 +7,8 @@ import { supabase } from './supabaseClient';
 //Importing pages
 import SignInPage from './SignIn';
 import Dashboard from './Dashboard';
+import MyTrips from './MyTrips';
+import NewTrip from './NewTrip';
 import { React, useEffect, useState } from 'react';
 
 function App() {
@@ -19,22 +21,35 @@ function App() {
 
     async function getTrips() {
         const { data } = await supabase.from("fishing_trip").select();
-        console.log(data)
         setTrips(data)
         
     }
 
   return (
+    <Router>
+      <Routes>
+        {/* Root route - protected */}
+        <Route
+          path="/"
+          element={
+            <>
+              <SignedIn>
+                <Dashboard />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          }
+        />
 
-    <div className="d-flex justify-content-center align-items-center vh-100">
-      <SignedIn>
-        <Dashboard />
-      </SignedIn>
-
-      <SignedOut>
-        <SignIn />
-      </SignedOut>
-    </div>
+        {/* Sign-in and sign-up routes */}
+        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/my-trips" element={<MyTrips/>} />
+        <Route path="/new-trip" element={<NewTrip/>} />
+      </Routes>
+    </Router>
   );
 }
 

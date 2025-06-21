@@ -1,11 +1,10 @@
-import logo from './logo.svg';
 import './App.css';
 import { useUser } from '@clerk/clerk-react';
 import { React, useEffect } from 'react';
 import axios from 'axios';
 
 //Importing pages
-import { SignOutButton } from '@clerk/clerk-react';
+import { Navbar } from '../src/Components/Navbar';
 
 function Dashboard() {
 
@@ -13,10 +12,9 @@ function Dashboard() {
 
   useEffect(() => {
     if(isLoaded && isSignedIn){
-      console.log("useEffect ran!")
-      console.log(user)
+      console.log(user.id);
       axios.post('/api/users', {
-        id: user.id,
+        clerk_user_id: user.id,
         username: user.primaryEmailAddress.emailAddress,
         first_name: user.firstName,
         last_name: user.lastName
@@ -27,23 +25,12 @@ function Dashboard() {
   }, [isLoaded, isSignedIn, user]);
 
   return (
-    <div className="Dash">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-      <SignOutButton></SignOutButton>
+    <>
+    <Navbar/>
+    <div className='container mt-4'>
+      <h1>Cool stuff will go here.</h1>
     </div>
+    </>
   );
 }
 
