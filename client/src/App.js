@@ -1,33 +1,40 @@
 import logo from './logo.svg';
 import './App.css';
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { SignIn, SignUp, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+import { supabase } from './supabaseClient'; 
+
+//Importing pages
+import SignInPage from './SignIn';
+import Dashboard from './Dashboard';
+import { React, useEffect, useState } from 'react';
 
 function App() {
+
+  const [trips, setTrips] = useState([]);
+
+    useEffect(() => {
+        getTrips();
+    }, []);
+
+    async function getTrips() {
+        const { data } = await supabase.from("fishing_trip").select();
+        console.log(data)
+        setTrips(data)
+        
+    }
+
   return (
-    <header>
-      <SignedOut>
-        <SignInButton />
-      </SignedOut>
+
+    <div className="d-flex justify-content-center align-items-center vh-100">
       <SignedIn>
-        <UserButton />
+        <Dashboard />
       </SignedIn>
-    </header>
-    // <div className="App">
-    //   <header className="App-header">
-    //     <img src={logo} className="App-logo" alt="logo" />
-    //     <p>
-    //       Edit <code>src/App.js</code> and save to reload.
-    //     </p>
-    //     <a
-    //       className="App-link"
-    //       href="https://reactjs.org"
-    //       target="_blank"
-    //       rel="noopener noreferrer"
-    //     >
-    //       Learn React
-    //     </a>
-    //   </header>
-    // </div>
+
+      <SignedOut>
+        <SignIn />
+      </SignedOut>
+    </div>
   );
 }
 
