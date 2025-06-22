@@ -1,0 +1,20 @@
+{
+  "recommendations": [
+    "dsznajder.es7-react-js-snippets",
+    "msjsdiag.debugger-for-chrome",
+    "ritwickdey.LiveServer",
+    "esbenp.prettier-vscode",
+    "formulahendry.auto-close-tag",
+    "formulahendry.auto-rename-tag",
+    "eamodio.gitlens",
+    "CoenraadS.bracket-pair-colorizer-2",
+    "visualstudioexptteam.vscodeintellicode",
+    "oderwat.indent-rainbow",
+    "mhutchie.git-graph",
+    "prisma.prisma",
+    "GraphQL.vscode-graphql",
+    "TabNine.tabnine-vscode",
+    "bradlc.vscode-tailwindcss",
+    "supabase.supabase"
+  ]
+}
