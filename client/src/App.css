@@ -36,3 +36,14 @@
     transform: rotate(360deg);
   }
 }
+
+.hover-shade {
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.hover-shade:hover {
+  cursor: pointer;
+  background-color: #f0f0f0; /* light gray */
+}

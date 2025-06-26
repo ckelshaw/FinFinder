@@ -9,6 +9,7 @@ import SignInPage from './SignIn';
 import Dashboard from './Dashboard';
 import MyTrips from './MyTrips';
 import NewTrip from './NewTrip';
+import Trip from './Trip';
 import { React, useEffect, useState } from 'react';
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/my-trips" element={<MyTrips/>} />
         <Route path="/new-trip" element={<NewTrip/>} />
+        <Route path='/trip/:tripId' element={<Trip/>} />
       </Routes>
     </Router>
   );
