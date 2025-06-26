@@ -3,6 +3,7 @@ import { useUser } from '@clerk/clerk-react';
 import { React, useEffect } from 'react';
 import axios from 'axios';
 import logo from './Assets/FinFinder_Logo.png';
+import RiverSearch from './components/RiverSearch';
 
 //Importing pages
 import Navbar from './Navbar';
@@ -13,7 +14,6 @@ function Dashboard() {
 
   useEffect(() => {
     if(isLoaded && isSignedIn){
-      console.log(user.id);
       axios.post('/api/users', {
         clerk_user_id: user.id,
         username: user.primaryEmailAddress.emailAddress,

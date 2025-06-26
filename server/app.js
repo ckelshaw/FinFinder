@@ -3,8 +3,11 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import userRoutes from './routes/users.js';
 import testRoutes from './routes/test.js';
-
-
+import tripRoutes from './routes/trips.js';
+import tripCompletedRoutes from './routes/tripCompleted.js';
+import updateTripNotes from './routes/updateTripNotes.js';
+import searchRivers from './routes/searchRivers.js';
+import searchUSGS from './routes/searchUSGS.js';
 
 const app = express();
 app.use((req, res, next) => {
@@ -19,14 +22,12 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/test', testRoutes);
-
-console.log('userRoutes:', userRoutes);
+app.use('/api/trips', tripRoutes);
 app.use('/api/users', userRoutes);
-// app._router.stack.forEach((r) => {
-//   if (r.route && r.route.path) {
-//     console.log('Registered route:', r.route.path);
-//   }
-// });
+app.use('/api/trip', tripCompletedRoutes);
+app.use('/api/trip/', updateTripNotes);
+app.use('/api/search-rivers', searchRivers);
+app.use('/api/search-usgs', searchUSGS);
 
 app.use((req, res, next) => {
   console.log(`Reached catch-all middleware: ${req.method} ${req.url}`);
