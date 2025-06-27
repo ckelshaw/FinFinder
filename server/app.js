@@ -8,10 +8,11 @@ import tripCompletedRoutes from './routes/tripCompleted.js';
 import updateTripNotes from './routes/updateTripNotes.js';
 import searchRivers from './routes/searchRivers.js';
 import searchUSGS from './routes/searchUSGS.js';
+import updateTrip from './routes/updateTrip.js';
 
 const app = express();
 app.use((req, res, next) => {
-  console.log(`🌐 Incoming request: ${req.method} ${req.url}`);
+  console.log(`Incoming request: ${req.method} ${req.url}`);
   next();
 });
 app.use(cors());
@@ -28,6 +29,7 @@ app.use('/api/trip', tripCompletedRoutes);
 app.use('/api/trip/', updateTripNotes);
 app.use('/api/search-rivers', searchRivers);
 app.use('/api/search-usgs', searchUSGS);
+app.use('/api/trip', updateTrip);
 
 app.use((req, res, next) => {
   console.log(`Reached catch-all middleware: ${req.method} ${req.url}`);

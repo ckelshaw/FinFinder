@@ -7,11 +7,11 @@ import axios from "axios";
 import TripCard from './components/TripCard';
 import Navbar from "./Navbar";
 
-function Trip() {
+function Trip() { //Page to display details of a specific trip
 
   const [trip, setTrip] = useState([]);
-  const [loading, setLoading] = useState(!trip);
-  const [error, setError] = useState(null);
+  // const [loading, setLoading] = useState(!trip);
+  // const [error, setError] = useState(null);
   const { tripId } = useParams();
   const { user } = useUser();
 
@@ -22,8 +22,9 @@ function Trip() {
 
   const fetchTripDetails = async () => {
     console.log(tripId)
-        //if(!user) return;
+        if(!user) return;
 
+        //TODO: Move this to a backend call
         const { data, error } = await supabase
             .from('trip_details_view')
             .select('*')
@@ -35,10 +36,9 @@ function Trip() {
         } else {
             setTrip(data);
         }
-        console.log(data)
     };
 
-  const saveAsCompleted = () => {
+  const saveAsCompleted = () => { // Update trip status to completed in the database
     axios.post('/api/tripCompleted', {
         id: tripId,
         completed: true

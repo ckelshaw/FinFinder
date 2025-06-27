@@ -10,8 +10,10 @@ function DateInput({ onChange }){ //passing in the parents handleChange method
         onChange(date) //passing the date back up to the parent
     };
 
+    //TODO: don't allow dates before today
+
     return (
-        <DatePicker
+        <DatePicker 
             selected={selectedDate}
             onChange={handleChange}
             className="form-control"

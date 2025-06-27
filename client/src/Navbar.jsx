@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import logo from "./Assets/FinFinder_Logo.png";
 
 function Navbar() {
+  //<UserButton /> is a component provided by Clerk that renders a button to view user information and sign out.
     return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light px-3">
       <Link className="navbar-brand d-flex align-items-center" to="/">
@@ -24,7 +25,7 @@ function Navbar() {
           </li>
         </ul>
         <div className="d-flex align-items-center">
-          <UserButton />
+          <UserButton /> 
         </div>
       </div>
     </nav>

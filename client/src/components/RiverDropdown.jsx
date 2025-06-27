@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import { supabase } from '../supabaseClient';
 
+//Not currently using
+
 function RiverDropdown({ onSelect, reset }) {
   const [rivers, setRivers] = useState([]);
   const [selectedOption, setSelectedOption] = useState([]);

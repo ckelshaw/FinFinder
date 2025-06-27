@@ -18,13 +18,20 @@ function FishingConditions({ riverName, riverId, date, title, onClear, usgsSite 
     const saveFishingTrip = () => {
         axios.post('/api/trips', {
             user_id: userId,
-            river_id: riverId,
+            river_id: riverId, //River ID comes from GNIS and is unique
+            river_name: riverName,
+            state: 'ID', //TODO: get the state from the selected river in the future
             date: date,
-            title: title,
+            title: title, //Title of the trip comes from river name + date
             preTripNotes: preTripNotes,
             temp: temp,
             bPressure: bPressure,
             streamFlow: streamFlow,
+            siteCode: usgsSite.siteCode,
+            siteName: usgsSite.siteName,
+            //TODO: get lat long from weather data
+            // latitude: usgsSite.latitude, 
+            // longitude: usgsSite.longitude,
             wind: wind
         })
         .then(res => {
@@ -38,11 +45,12 @@ function FishingConditions({ riverName, riverId, date, title, onClear, usgsSite 
     }
 
     useEffect(() => {
+      console.log(usgsSite);
         //Loading our mock data
         setTemp(mockConditions.temp)
         setBPressure(mockConditions.barometric_pressure)
         //setStreamFlow(mockConditions.stream_flow)
-        setStreamFlow(usgsSite.flow);
+        setStreamFlow(usgsSite.flow); //Getting the flow from the USGS data
         setWind(mockConditions.wind_mph)
     }, [])
 
@@ -52,7 +60,7 @@ function FishingConditions({ riverName, riverId, date, title, onClear, usgsSite 
           <div className="row justify-content-center">
             <div className="col-12 col-md-10 col-lg-8">
               <div className="card shadow-sm p-4 mt-4">
-                <h4 className="text-center mb-4">🎣 Conditions</h4>
+                <h4 className="text-center mb-4">Conditions</h4>
                 <div className="row">
                   {/* Left Column */}
                   <div className="col-12 col-md-6 mb-4 mb-md-0">
@@ -60,6 +68,7 @@ function FishingConditions({ riverName, riverId, date, title, onClear, usgsSite 
                     <p className="mb-2">
                       <strong>Stream Flow:</strong> {streamFlow} cfs
                     </p>
+                    <p className="mb-2 small">{usgsSite.siteName}</p>
                     <h6 className="mt-4 mb-2">Forecast</h6>
                     <p className="mb-1">
                       <strong>Temperature:</strong> {temp}°F

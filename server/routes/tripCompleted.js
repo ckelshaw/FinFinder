@@ -3,6 +3,7 @@ import supabase from '../supabaseClient.js';
 
 const router = express.Router();
 
+// Endpoint to mark a trip as completed
 router.patch('/mark-as-completed', async (req, res) => {
     const {
         id,

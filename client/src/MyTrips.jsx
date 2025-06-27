@@ -5,12 +5,12 @@ import { useUser } from "@clerk/clerk-react";
 import { supabase } from "./supabaseClient";
 import { Navigate, useNavigate } from "react-router-dom";
 
-function MyTrips(){
+function MyTrips(){ //Page to display user's planned and completed trips
     const { user } = useUser();
     const [plannedTrips, setPlannedTrips] = useState([]);
     const [completedTrips, setCompletedTrips] = useState([]);
     const navigate = useNavigate();
-    const handleCardClick = (trip) => {
+    const handleCardClick = (trip) => { //If a user clicks on a trip card, navigate to the trip details page
         navigate(`/trip/${trip.id}`, { state: { trip }});
     }
 

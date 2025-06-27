@@ -2,7 +2,7 @@ import express from 'express';
 import supabase from '../supabaseClient.js';
 
 const router = express.Router();
-
+// Endpoint to create a new user, with clerk_user_id, username, first_name, last_name
 router.post('/', async (req, res) => {
     const { clerk_user_id, username, first_name, last_name} = req.body;
 

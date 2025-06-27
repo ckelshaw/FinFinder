@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-function USGSSites(usgsSites) {
+function USGSSites({ usgsSites, onSiteSelect }) { //Component to display and select USGS sites
 
-    const handleSelectSite = (selectedSite) => {
-        //do something with the selected site
+    const [selectedSite, setSelectedSite] = useState([]);
+
+    const handleSelectSite = (selectedSite) => { //Pass in the selected site, set it, and call the parent's onSiteSelect method with the selected site.
+        setSelectedSite(selectedSite);
+        onSiteSelect(selectedSite); //Callback function to NewTrip.jsx
     }
 
     return (
       <>
         <div className="mt-4">
           <h5 className="text-center fw-semibold mb-3">
-            💧 Select a USGS Site
+            Select a USGS Site
           </h5>
           <div className="list-group shadow-sm rounded">
             {usgsSites.map((site, index) => (
@@ -28,7 +31,7 @@ function USGSSites(usgsSites) {
                   </div>
                 </div>
                 <span className="badge bg-primary rounded-pill">
-                  {site.latestFlow} cfs
+                  {site.flow} cfs
                 </span>
               </button>
             ))}
