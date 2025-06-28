@@ -56,9 +56,9 @@ function MyTrips(){ //Page to display user's planned and completed trips
     <>
       <Navbar />
       <div className="container mt-5">
-        <h2 className="text-primary text-center mb-4">🎣 My Trips</h2>
+        <h2 className="text-primary text-center mb-4">My Trips</h2>
 
-        <h4 className="text-dark mb-3">Planned Trips</h4>
+        <h4 className="text-warning mb-3">Planned Trips</h4>
         <div className="row">
           {plannedTrips.length ? plannedTrips.map(renderTripCard) : (
             <p className="text-muted">No planned trips yet.</p>
