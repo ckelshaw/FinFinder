@@ -1,30 +1,18 @@
-import logo from './logo.svg';
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { SignIn, SignUp, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
-import { supabase } from './supabaseClient'; 
 
 //Importing pages
 import SignInPage from './SignIn';
 import Dashboard from './Dashboard';
-import MyTrips from './MyTrips';
-import NewTrip from './NewTrip';
-import Trip from './Trip';
+import MyTrips from './features/MyTrips';
+import NewTrip from './features/NewTrip';
+import Trip from './features/Trip';
 import { React, useEffect, useState } from 'react';
 
 function App() {
 
-  const [trips, setTrips] = useState([]);
-
-    useEffect(() => {
-        getTrips();
-    }, []);
-
-    async function getTrips() {
-        const { data } = await supabase.from("fishing_trip").select();
-        setTrips(data)
-        
-    }
+  //const [trips, setTrips] = useState([]);
 
   return (
     <Router>

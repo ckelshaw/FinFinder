@@ -1,8 +1,7 @@
 import React, {useState, useEffect} from "react";
-import Navbar from "./Navbar";
-import { SupabaseClient } from "@supabase/supabase-js";
+import Navbar from "../components/Navbar";
+import { getTripsByUser } from '../api/trips';
 import { useUser } from "@clerk/clerk-react";
-import { supabase } from "./supabaseClient";
 import { Navigate, useNavigate } from "react-router-dom";
 
 function MyTrips(){ //Page to display user's planned and completed trips
@@ -10,6 +9,7 @@ function MyTrips(){ //Page to display user's planned and completed trips
     const [plannedTrips, setPlannedTrips] = useState([]);
     const [completedTrips, setCompletedTrips] = useState([]);
     const navigate = useNavigate();
+
     const handleCardClick = (trip) => { //If a user clicks on a trip card, navigate to the trip details page
         navigate(`/trip/${trip.id}`, { state: { trip }});
     }
@@ -20,22 +20,18 @@ function MyTrips(){ //Page to display user's planned and completed trips
         }
     },[user]);
 
-    //TODO: move this to a backend call
+    // Fetch user's trips when component mounts or user changes
     const fetchTrips = async () => {
-        const { data, error } = await supabase
-            .from("fishing_trip")
-            .select('*')
-            .eq('user_id', user.id)
-            .order('date', { ascending: false });
-        if(error){
-            console.error('Error fetching trips: ', error);
-        } else {
-            const pTrips = data.filter(trip => !trip.completed);
-            setPlannedTrips(pTrips);
-            const cTrips = data.filter(trip => trip.completed);
-            setCompletedTrips(cTrips);
-        }
-    }
+      try {
+        const trips = await getTripsByUser(user.id);
+        const pTrips = trips.filter((trip) => !trip.completed);
+        const cTrips = trips.filter((trip) => trip.completed);
+        setPlannedTrips(pTrips);
+        setCompletedTrips(cTrips);
+      } catch (err) {
+        console.error("Error fetching trips:", err);
+      }
+    };
 
 
     const renderTripCard = (trip) => (

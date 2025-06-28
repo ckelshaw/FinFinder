@@ -1,39 +1,43 @@
 import express from 'express';
 import cors from 'cors';
+//import morgan from 'morgan';
 import dotenv from 'dotenv';
-import userRoutes from './routes/users.js';
-import testRoutes from './routes/test.js';
-import tripRoutes from './routes/trips.js';
-import tripCompletedRoutes from './routes/tripCompleted.js';
-import updateTripNotes from './routes/updateTripNotes.js';
-import searchRivers from './routes/searchRivers.js';
-import searchUSGS from './routes/searchUSGS.js';
-import updateTrip from './routes/updateTrip.js';
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
-app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.url}`);
-  next();
-});
-app.use(cors());
-app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
+// Middleware
+app.use(cors()); // Allow cross-origin requests
+app.use(express.json()); // Parse JSON request bodies
+//app.use(morgan('dev')); // Log HTTP requests
 
-app.use('/api/test', testRoutes);
+// Routes
+import tripRoutes from './routes/trips/tripRoutes.js';
+import userRoutes from './routes/users/userRoutes.js';
+import riverRoutes from './routes/rivers/riverRoutes.js';
+
+// Route mounting
 app.use('/api/trips', tripRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/trip', tripCompletedRoutes);
-app.use('/api/trip/', updateTripNotes);
-app.use('/api/search-rivers', searchRivers);
-app.use('/api/search-usgs', searchUSGS);
-app.use('/api/trip', updateTrip);
+app.use('/api/rivers', riverRoutes);
 
-app.use((req, res, next) => {
-  console.log(`Reached catch-all middleware: ${req.method} ${req.url}`);
-  res.status(404).json({ message: 'Route not found' });
+// Health check route
+app.get('/', (req, res) => {
+  res.send('Fin Finder API is live');
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.statusCode || 500).json({ error: err.message || 'Something broke!' });
+});
+
+// Start server
+const PORT = process.env.PORT || 5050;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 export default app;

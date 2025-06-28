@@ -2,11 +2,10 @@ import './App.css';
 import { useUser } from '@clerk/clerk-react';
 import { React, useEffect } from 'react';
 import axios from 'axios';
-import logo from './Assets/FinFinder_Logo.png';
-import RiverSearch from './components/RiverSearch';
+import logo from './assets/FinFinder_Logo.png';
 
 //Importing pages
-import Navbar from './Navbar';
+import Navbar from './components/Navbar';
 
 function Dashboard() {
 

@@ -1,16 +1,17 @@
 import express from 'express';
-import supabase from '../supabaseClient.js';
+import supabase from '../../supabaseClient.js';
 
 const router = express.Router();
 
-// Endpoint to mark a trip as completed
-router.patch('/mark-as-completed', async (req, res) => {
+// Endpoint to update the stream flow for a given trip
+router.patch('/update-trip', async (req, res) => {
     const {
         id,
-        completed,
+        stream_flow,
         user_id
     } = req.body;
     try {
+        console.log("Updating trip with new flow rate: ", stream_flow);
     // Step 1: Verify the trip belongs to the user
     const { data: trip, error: fetchError } = await supabase
       .from('fishing_trip')
@@ -24,9 +25,10 @@ router.patch('/mark-as-completed', async (req, res) => {
     }
     // Step 2: Update the trip
     const { data, error } = await supabase
-      .from('fishing_trip')
-      .update({ completed })
-      .eq('id', id);
+      .from('conditions')
+      .update({ stream_flow })
+      .eq('trip_id', id)
+      .select();
     if (error) throw error;
 
     res.status(200).json({ message: 'Trip updated successfully.', data });

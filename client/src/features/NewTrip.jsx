@@ -1,11 +1,11 @@
 import React from "react";
 import { useState } from "react";
-import RiverSearch from "./components/RiverSearch";
-import DatePicker from "./components/DateInput";
+import RiverSearch from "../components/RiverSearch";
+import DatePicker from "../components/DateInput";
 import { format } from "date-fns";
-import Navbar from "./Navbar";
-import FishingConditions from "./components/FishingConditions";
-import USGSSites from "./components/USGSSites";
+import Navbar from "../components/Navbar";
+import FishingConditions from "../components/FishingConditions";
+import USGSSites from "../components/USGSSites";
 
 function NewTrip() {
   const [river, setRiver] = useState("");
@@ -19,15 +19,6 @@ function NewTrip() {
   const [showStreamflowSelector, setShowStreamflowSelector] = useState(false);
   const [showUSGSMessage, setShowUSGSMessage] = useState(false);
 
-  // const handleRiverChange = (riverProp) => {
-  //   if (riverProp) {
-  //     setRiver(riverProp.label);
-  //     setRiverId(riverProp.value);
-  //   } else {
-  //     setRiver(null);
-  //     setTitle("New Trip");
-  //   }
-  // };
 
   const handleStreamflowSelection = (site) => { //When user selects a USGS site from the dropdown
     setSelectedUsgsSite(site);
@@ -79,7 +70,7 @@ function NewTrip() {
             </h2>
             <h3
               id="trip-name"
-              class="text-center text-uppercase text-secondary mb-4"
+              className="text-center text-uppercase text-secondary mb-4"
             >
               {title}
             </h3>
@@ -97,30 +88,7 @@ function NewTrip() {
                     usgsSites={usgsSites}
                     onSiteSelect={handleStreamflowSelection}
                   />
-                  // <div className="container mt-4">
-                  //   <div className="card shadow-sm p-4">
-                  //     <h5 className="mb-3 text-center">
-                  //       USGS Streamflow Sites
-                  //     </h5>
-                  //     <ul className="list-group">
-                  //       {usgsSites.map((site, index) => (
-                  //         <li
-                  //           key={index}
-                  //           className="list-group-item hover-shade"
-                  //           onClick={() => handleStreamflowSelection(site)}
-                  //         >
-                  //           {site.siteName}
-                  //         </li>
-                          
-                  //       ))}
-                  //     </ul>
-                  //   </div>
-                  // </div>
                 )}
-                {/* <RiverDropdown
-                    onSelect={handleRiverChange}
-                    reset={resetKey}
-                  /> */}
               </div>
               {river && (
                 <div className="mb-4">
@@ -155,8 +123,8 @@ function NewTrip() {
       {showPreview && (
         //Show the conditions for the selected river and date
         <FishingConditions
-          riverName={river.river.feature_name}
-          riverId={river.river.feature_id}
+          riverName={river?.river?.feature_name}
+          riverId={river?.river?.feature_id}
           date={date}
           title={title}
           onClear={clearForm}

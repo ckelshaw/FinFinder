@@ -1,10 +1,15 @@
 // components/TripDetailsCard.jsx
 import React, { useState } from 'react';
-import placeholderMap from '../Assets/placeholderImage.jpg';
-import axios from "axios";
+import placeholderMap from '../assets/placeholderImage.jpg';
+import {
+  markTripAsCompleted,
+  updatePostTripNotes as apiUpdatePostTripNotes,
+  updateTripStreamflow,
+} from '../api/trips';
+import { fetchHistoricalUSGSData } from '../api/rivers';
 import { useUser } from '@clerk/clerk-react';
 
-function TripCard({ trip, onSaveCompleted, onTripUpdated }) {
+function TripCard({ trip, onTripUpdated }) {
 
   const [postTripNotes, setPostTripNotes] = useState('');
   const { user } = useUser();
@@ -12,11 +17,7 @@ function TripCard({ trip, onSaveCompleted, onTripUpdated }) {
   const [updatedUSGSData, setUpdatedUSGSData] = useState(null);
 
   const saveAsCompleted = () => { //Update the trip as completed
-    axios.patch('/api/trip/mark-as-completed', {
-        id: trip.trip_id,
-        completed: true,
-        user_id: userId
-    })
+    markTripAsCompleted({ id: trip.trip_id, user_id: userId })
     .then(res => {
         console.log("trip updated!", res.data)
         onTripUpdated(); //Callback function to Trip.jsx
@@ -27,10 +28,10 @@ function TripCard({ trip, onSaveCompleted, onTripUpdated }) {
   }
 
   const updatePostTripNotes = (pTripNotes) => { //Update the trip with the post-trip notes
-    axios.patch('/api/trip/update-post-trip-notes', {
-        id: trip.trip_id,
-        post_trip_notes: postTripNotes,
-        user_id: userId
+    apiUpdatePostTripNotes({
+      id: trip.trip_id,
+      post_trip_notes: postTripNotes,
+      user_id: userId,
     })
     .then(res => {
         console.log("trip notes updated!", res.data)
@@ -42,14 +43,13 @@ function TripCard({ trip, onSaveCompleted, onTripUpdated }) {
   }
 
   const updateTrip = (usgsData) =>{ //Update the trip with the new USGS data
-    axios
-      .patch("/api/trip/update-trip", {
-        id: trip.trip_id,
-        stream_flow: usgsData[0].flow,
-        user_id: userId,
-      })
+    updateTripStreamflow({
+      id: trip.trip_id,
+      stream_flow: usgsData?.[0]?.flow,
+      user_id: userId,
+    })
       .then((res) => {
-        console.log("trip updated with USGS data!", res.data);
+        console.log("trip updated with USGS data!", res);
         onTripUpdated(); //Callback function to Trip.jsx
       })
       .catch((err) => {
@@ -58,20 +58,11 @@ function TripCard({ trip, onSaveCompleted, onTripUpdated }) {
   }
 
   const fetchRealData = () => { //Call to USGS to get streamflow for the day of the trip. Previous value was for the current conditions on the day the trip was created.
-    axios
-      .get("/api/search-usgs", {
-        params: {
-          stateCd: "ID", //TODO: get the state from the selected river in the future
-          siteType: "ST", //Searches for only stream/river sites
-          parameterCd: "00060", //Searches for only gauging stations
-          siteStatus: "active", //Filter out inactive sites
-          format: "json",
-          riverName: trip.river_name, //Pass in the river name to have our fuzzy match against gauging stations
-          siteCode: trip.usgs_site_code, //Pass in the siteCode to search for a specific site
-          startDate: trip.date, //Pass in the date of the trip
-          endDate: trip.date, //Pass in the date of the trip (same as above as we want the data for that day)
-        },
-      })
+    fetchHistoricalUSGSData({
+      riverName: trip.river_name,
+      siteCode: trip.usgs_site_code,
+      date: trip.date,
+    })
       .then((res) => {
         console.log("Fetched USGS updated data", res.data);
         setUpdatedUSGSData(res.data);

@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import axios from "axios";
+import { searchGNISRivers, fetchUSGSStreamflow } from '../api/rivers';
 
 function RiverSearch({ onGetUsgsSites }) {
   const [riverName, setRiverName] = useState('');
@@ -22,16 +22,11 @@ function RiverSearch({ onGetUsgsSites }) {
   };
 
   const fetchRiver = (river) => { //We are making a GET request to the server to fetch rivers from GNIS based on the user input.
-    axios
-      .get('/api/search-rivers', {
-        params: {
-          feature_name: river,
-          state_name: 'Idaho', //TODO: get the state from the selected river or maybe the user in the future
-        },
-      })
+    searchGNISRivers(river)
       .then((res) => {
-        setRivers(res.data);
-        if(res.data.length > 0) {
+        console.log('Fetched rivers', res);
+        setRivers(res);
+        if(res.length > 0) {
             setShowDropdown(true);
         }
         console.log("response data:", res.data)
@@ -46,21 +41,10 @@ function RiverSearch({ onGetUsgsSites }) {
     setSelectedRiver(selectedRiver);
     setShowDropdown(false);
 
-    axios
-      .get('/api/search-usgs', {
-        params: {
-          stateCd: 'ID', //TODO: get the state from the selected river in the future
-          siteType: 'ST', //Searches for only stream/river sites
-          parameterCd: '00060', //Searches for only gauging stations
-          siteStatus: 'active', //Filter out inactive sites
-          format: 'json',
-          riverName: selectedRiver.river.feature_name, //Pass in the river name to have our fuzzy match against gauging stations
-        },
-      })
+    fetchUSGSStreamflow(selectedRiver.river.feature_name)
       .then((res) => {
-        console.log('Fetched USGS sites', res.data);
-        setUSGSSites(res.data);
-        onGetUsgsSites(res.data, selectedRiver) //Call back function with the USGS sites and the selected river to NewTrip.jsx
+        setUSGSSites(res);
+        onGetUsgsSites(res, selectedRiver) //Call back function with the USGS sites and the selected river to NewTrip.jsx
       })
       .catch((err) => {
         console.log('Failed to pull USGS sites: ', err);

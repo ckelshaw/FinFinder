@@ -1,5 +1,5 @@
 import express from 'express';
-import supabase from '../supabaseClient.js';
+import supabase from '../../supabaseClient.js';
 
 const router = express.Router();
 // Endpoint to update post-trip notes for a given trip

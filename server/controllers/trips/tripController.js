@@ -1,0 +1,205 @@
+import supabase from '../../supabaseClient.js';
+
+// Helper to check trip ownership
+const verifyTripOwnership = async (tripId, userId) => {
+  const { data: trip, error } = await supabase
+    .from('fishing_trip')
+    .select('user_id')
+    .eq('id', tripId)
+    .single();
+
+  if (error) throw error;
+  if (!trip || trip.user_id !== userId) {
+    const ownershipError = new Error('Unauthorized access to trip.');
+    ownershipError.statusCode = 403;
+    throw ownershipError;
+  }
+};
+
+// Get Trips by User
+export const getTripsByUser = async (req, res) => {
+  const { user_id } = req.params;
+
+  try {
+    const { data, error } = await supabase
+      .from('fishing_trip')
+      .select('*')
+      .eq('user_id', user_id)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+
+    res.status(200).json(data);
+  } catch (err) {
+    console.error('Error fetching trips:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get Trip by trip ID
+export const getTripById = async (req, res) => {
+  const { trip_id } = req.params;
+
+  try {
+    const { data, error } = await supabase
+      .from('trip_details_view') // Using your DB view
+      .select('*')
+      .eq('trip_id', trip_id)
+      .single();
+
+    if (error) throw error;
+
+    res.status(200).json(data);
+  } catch (err) {
+    console.error('Error fetching trip:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Create Trip + Conditions
+export const createTrip = async (req, res) => {
+  const {
+    user_id,
+    river_id, //From GNIS and unique
+    river_name,
+    state,
+    date,
+    title,
+    preTripNotes,
+    temp,
+    bPressure,
+    streamFlow,
+    siteCode,
+    siteName,
+    wind
+  } = req.body;
+
+  try {
+    let finalRiverId = river_id;
+
+    // Check if river exists
+    const { data: existingRiver, error: riverCheckError } = await supabase
+      .from('rivers')
+      .select('id')
+      .eq('id', river_id)
+      .single();
+
+    if (riverCheckError && riverCheckError.code !== 'PGRST116') throw riverCheckError; // PGRST116 means no rows returned
+
+    if (!existingRiver) { //If river not found, insert it
+      const { data: newRiver, error: riverInsertError } = await supabase
+        .from('rivers')
+        .insert([{ id: river_id, river_name, state }])
+        .select()
+        .single();
+      if (riverInsertError) throw riverInsertError;
+
+      finalRiverId = newRiver.id;
+    }
+
+    const { data: tripData, error: tripError } = await supabase
+      .from('fishing_trip')
+      .insert([
+        {
+          user_id,
+          river: finalRiverId,
+          date,
+          title,
+          pre_trip_notes: preTripNotes
+        }
+      ])
+      .select();
+
+    if (tripError) throw tripError;
+
+    const trip_id = tripData[0].id;
+
+    // Insert Conditions
+    const { data: conditionsData, error: conditionsError } = await supabase
+      .from('conditions')
+      .insert([
+        {
+          trip_id,
+          temp,
+          barometric_pressure: bPressure,
+          stream_flow: streamFlow,
+          usgs_site_code: siteCode,
+          usgs_site_name: siteName,
+          wind_mph: wind
+        }
+      ])
+      .select();
+
+    if (conditionsError) throw conditionsError;
+
+    res.status(201).json({
+      message: 'Trip and conditions saved',
+      trip: tripData[0],
+      conditions: conditionsData[0]
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Mark Trip as Completed
+export const markTripAsCompleted = async (req, res) => {
+  const { id, completed, user_id } = req.body;
+
+  try {
+    await verifyTripOwnership(id, user_id);
+
+    const { data, error } = await supabase
+      .from('fishing_trip')
+      .update({ completed })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    res.status(200).json({ message: 'Trip marked as completed.', data });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ error: err.message });
+  }
+};
+
+//  Update streamflow conditions
+export const updateTripStreamFlow = async (req, res) => {
+  const { id, stream_flow, user_id } = req.body;
+
+  try {
+    await verifyTripOwnership(id, user_id);
+
+    const { data, error } = await supabase
+      .from('conditions')
+      .update({ stream_flow })
+      .eq('trip_id', id)
+      .select();
+
+    if (error) throw error;
+
+    res.status(200).json({ message: 'Trip streamflow updated.', data });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ error: err.message });
+  }
+};
+
+//  Update post-trip notes
+export const updatePostTripNotes = async (req, res) => {
+  const { id, post_trip_notes, user_id } = req.body;
+
+  try {
+    await verifyTripOwnership(id, user_id);
+
+    const { data, error } = await supabase
+      .from('fishing_trip')
+      .update({ post_trip_notes })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    res.status(200).json({ message: 'Post-trip notes updated.', data });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ error: err.message });
+  }
+};
