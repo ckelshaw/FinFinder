@@ -8,9 +8,9 @@ import {
 } from '../api/trips';
 import { fetchHistoricalUSGSData } from '../api/rivers';
 import { useUser } from '@clerk/clerk-react';
+import LeafletMap from './LeafletMap';
 
-function TripCard({ trip, onTripUpdated }) {
-
+function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
   const [postTripNotes, setPostTripNotes] = useState('');
   const { user } = useUser();
   const userId = user?.id;
@@ -64,9 +64,9 @@ function TripCard({ trip, onTripUpdated }) {
       date: trip.date,
     })
       .then((res) => {
-        console.log("Fetched USGS updated data", res.data);
-        setUpdatedUSGSData(res.data);
-        updateTrip(res.data); //Call our function to update the trip with the new data
+        console.log("Fetched USGS updated data", res);
+        setUpdatedUSGSData(res);
+        updateTrip(res); //Call our function to update the trip with the new data
       })
       .catch((err) => {
         console.log("Failed to pull USGS updated data: ", err);
@@ -74,7 +74,7 @@ function TripCard({ trip, onTripUpdated }) {
   };
   
 
-  if (!trip) return null;
+  if (!trip || !usgsSiteLatLong.latitude) return <h1>Loading...</h1>;
 
   return (
     <div className="container">
@@ -106,7 +106,13 @@ function TripCard({ trip, onTripUpdated }) {
 
               {/* Right Column */}
               <div className="col-12 col-md-6 d-flex justify-content-center align-items-center">
-                <img
+                {trip.usgs_site_code ? (
+                  <LeafletMap site={usgsSiteLatLong} />
+                ) : (
+                  <p className="text-warning">No USGS site data available</p>
+                )
+                }         
+                {/* <img
                   src={placeholderMap}
                   alt="Map preview"
                   className="img-fluid rounded shadow-sm"
@@ -115,7 +121,7 @@ function TripCard({ trip, onTripUpdated }) {
                     objectFit: "cover",
                     width: "100%",
                   }}
-                />
+                /> */}
               </div>
             </div>
             <div className="mb-4">

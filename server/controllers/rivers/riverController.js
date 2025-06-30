@@ -3,6 +3,7 @@ import axios from 'axios';
 // This controller fetches streamflow data from the USGS API (streamflow data)
 // based on a query parameter for river name, state, and other optional parameters.
 export const getUSGSStreamflow = async (req, res) => {
+  console.log('Fetching USGS streamflow data...');
   const {
     stateCd,
     siteStatus,
@@ -23,9 +24,11 @@ export const getUSGSStreamflow = async (req, res) => {
 
   // Base Url for the USGS API request
   let url = `https://waterservices.usgs.gov/nwis/iv/?format=${format}&siteStatus=${siteStatus}&siteType=${siteType}&parameterCd=${parameterCd}`;
-
-  if (siteCode) {
-    // If we have the siteCode we add it as that means we are searching for a specific site
+  if (siteCode && !startDate && !endDate) {
+    //If we have the siteCode and no dates we add it as that means we are searching for a specific site and the date does not matter
+    url += `&sites=${siteCode}`;
+  } else if(siteCode && startDate && endDate) {
+    // If we have the siteCode and dates we add it as that means we are searching for a specific site for a specific date range
     url += `&sites=${siteCode}&startDT=${startDate}&endDT=${endDate}`;
   } else {
     // If no siteCode, we add the stateCd to the URL as that means we are filtering by state
@@ -34,7 +37,6 @@ export const getUSGSStreamflow = async (req, res) => {
 
   try {
     const response = await axios.get(url);
-    console.log('USGS river data:', response.data);
     const timeSeries = response.data?.value?.timeSeries;
 
     if (!Array.isArray(timeSeries)) {
@@ -56,13 +58,51 @@ export const getUSGSStreamflow = async (req, res) => {
           dateTime: flow?.dateTime || null,
         };
       });
-      console.log('Filtered USGS data:', filtered);
     res.json(filtered);
   } catch (err) {
     console.error('USGS Water Data API error:', err.message);
     res.status(500).json({ error: err.message });
   }
 };
+
+export const getUSGSLatLng = async (req, res) => {
+  const {
+    stateCd,
+    siteStatus,
+    siteType,
+    parameterCd,
+    format,
+    siteCode,
+  } = req.query;
+
+  if(!stateCd ||!siteStatus ||!siteType ||!parameterCd || !siteCode) {
+    return res.status(400).json({
+      error: 'Missing stateCd, siteStatus, siteType, parameterCd, or siteCode',
+    });
+  }
+
+  //Url for the USGS API request
+  const url = `https://waterservices.usgs.gov/nwis/iv/?format=${format}&siteStatus=${siteStatus}&siteType=${siteType}&parameterCd=${parameterCd}&sites=${siteCode}`;
+
+  try {
+    const response = await axios.get(url);
+    const siteInfo = response.data?.value?.timeSeries[0]?.sourceInfo;
+
+    if (!siteInfo) {
+      return res.status(404).json({ error: 'No site data found.' });
+    }
+
+    res.json({
+      siteName: siteInfo.siteName,
+      siteCode: siteInfo.siteCode?.[0]?.value,
+      latitude: siteInfo.geoLocation.geogLocation.latitude,
+      longitude: siteInfo.geoLocation.geogLocation.longitude,
+    });
+  } catch (err) {
+    console.error('USGS Water Data API error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+}
 
 // This controller fetches rivers from the Idaho GNIS API
 // based on a query parameter for river name and state name.

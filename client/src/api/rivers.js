@@ -26,7 +26,7 @@ export const fetchUSGSStreamflow = async (riverName) => { //TODO: get the state 
 
 // Fetch historical USGS data by siteCode and date
 export const fetchHistoricalUSGSData = async ({ riverName, siteCode, date }) => {
-  const res = await api.get('/rivers/usgs', {
+  const response = await api.get('/rivers/usgs', {
     params: {
       stateCd: 'ID', //TODO: get the state from the selected river in the future
       siteType: 'ST',
@@ -39,5 +39,20 @@ export const fetchHistoricalUSGSData = async ({ riverName, siteCode, date }) => 
       endDate: date,
     },
   });
-  return res;
+  console.log('Historical USGS data:', response.data);
+  return response.data;
 };
+
+export const fetchUSGSLatLong = async (siteCode) => {
+  const response = await api.get('/rivers/usgs-get-lat-lng', {
+    params: {
+      stateCd: 'ID', //TODO: get the state from the selected river in the future
+      siteCode: siteCode,
+      format: 'json',
+      siteType: 'ST',
+      parameterCd: '00060',
+      siteStatus: 'active',
+    },
+  });
+  return response.data;
+ }

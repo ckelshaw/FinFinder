@@ -4,6 +4,7 @@ import placeholderMap from "../assets/placeholderImage.jpg";
 import { savePlannedTrip } from "../api/trips";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
+import LeafletMap from "./LeafletMap";
 
 function FishingConditions({
   riverName,
@@ -50,7 +51,6 @@ function FishingConditions({
   };
 
   useEffect(() => {
-    console.log(usgsSite);
     //Loading our mock data
     setTemp(mockConditions.temp);
     setBPressure(mockConditions.barometric_pressure);
@@ -89,8 +89,9 @@ function FishingConditions({
                 </div>
 
                 {/* Right Column */}
-                <div className="col-12 col-md-6 d-flex justify-content-center align-items-center">
-                  <img
+                <div className="col-12 col-md-6 d-flex justify-content-center align-items-center" >
+                  <LeafletMap site={usgsSite} />
+                  {/* <img
                     src={placeholderMap}
                     alt="Map preview"
                     className="img-fluid rounded shadow-sm"
@@ -99,7 +100,7 @@ function FishingConditions({
                       objectFit: "cover",
                       width: "100%",
                     }}
-                  />
+                  /> */}
                 </div>
               </div>
               <div className="mb-4">
@@ -127,7 +128,7 @@ function FishingConditions({
                   Save as a Planned Trip!
                 </button>
                 <button
-                  className="btn btn-outline-secondary rounded-pill px-4"
+                  className="btn btn-outline-light rounded-pill px-4"
                   type="button"
                   onClick={onClear}
                 >

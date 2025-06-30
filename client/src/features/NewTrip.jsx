@@ -108,7 +108,7 @@ function NewTrip() {
                     Go
                   </button>
                   <button
-                    className="btn btn-outline-secondary rounded-pill px-4"
+                    className="btn btn-outline-light rounded-pill px-4"
                     type="button"
                     onClick={clearForm}
                   >

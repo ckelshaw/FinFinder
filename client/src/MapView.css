@@ -1,0 +1,23 @@
+.map-container {
+  height: 100%;
+  width: 100%;
+  min-height: 400px;
+  border-radius: 8px;
+}
+
+.usgs-popup {
+  font-family: var(--font-family, 'Segoe UI', sans-serif);
+  color: var(--text-color, #2d3748);
+  font-size: 0.95rem;
+  max-width: 240px;
+}
+
+.usgs-popup h5 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  color: var(--primary-color, #2c7a7b);
+}
+
+.usgs-popup p {
+  margin: 4px 0;
+}

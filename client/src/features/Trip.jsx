@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getTripById } from '../api/trips';
+import { fetchUSGSLatLong } from "../api/rivers";
 import { useParams } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import TripCard from '../components/TripCard';
@@ -8,11 +9,9 @@ import Navbar from "../components/Navbar";
 function Trip() { //Page to display details of a specific trip
 
   const [trip, setTrip] = useState([]);
-  // const [loading, setLoading] = useState(!trip);
-  // const [error, setError] = useState(null);
   const { tripId } = useParams();
   const { user } = useUser();
-
+  const [usgsLatLong, setUSGSLatLong] = useState([]);
 
   useEffect(() => {
     fetchTripDetails();
@@ -21,19 +20,29 @@ function Trip() { //Page to display details of a specific trip
   const fetchTripDetails = async () => {
   if (!user) return;
   try {
-    const data = await getTripById(tripId);
+    const data = await getTripById(tripId); //Pull the trip details
     setTrip(data);
+    if(data.usgs_site_code) {
+    const siteInfo = await fetchUSGSLatLong(data.usgs_site_code); // Fetch the USGS Lat/Long for the monitoring site the user had selected
+    setUSGSLatLong({
+      siteCode: data.usgs_site_code,
+      siteName: siteInfo.siteName,
+      siteType: siteInfo.siteType,
+      latitude: siteInfo.latitude,
+      longitude: siteInfo.longitude,
+      flow: data.stream_flow
+    });
+  }
   } catch (err) {
     console.error('Error fetching trip:', err);
   }
 };
-
-  if (!trip) return <p>Trip not found.</p>;
+  if (!trip) return <p>Loading trip...</p>;
 
   return (
     <>
     <Navbar />
-    <TripCard trip={trip} onTripUpdated={fetchTripDetails} />
+    <TripCard trip={trip} onTripUpdated={fetchTripDetails} usgsSiteLatLong={usgsLatLong} />
     </>
   
   );
