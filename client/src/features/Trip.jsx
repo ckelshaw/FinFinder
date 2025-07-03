@@ -8,17 +8,19 @@ import Navbar from "../components/Navbar";
 
 function Trip() { //Page to display details of a specific trip
 
-  const [trip, setTrip] = useState([]);
+  const [trip, setTrip] = useState(null);
   const { tripId } = useParams();
   const { user } = useUser();
   const [usgsLatLong, setUSGSLatLong] = useState([]);
 
   useEffect(() => {
-    fetchTripDetails();
+    if (user) {
+      fetchTripDetails();
+    }
   }, [user, tripId]);
 
   const fetchTripDetails = async () => {
-  if (!user) return;
+  //if (!user) return;
   try {
     const data = await getTripById(tripId); //Pull the trip details
     setTrip(data);

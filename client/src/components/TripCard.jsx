@@ -53,7 +53,7 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
     })
       .then((res) => {
         console.log("trip updated with USGS data!", res);
-        //onTripUpdated(); //Callback function to Trip.jsx
+        onTripUpdated(); //Callback function to Trip.jsx
       })
       .catch((err) => {
         console.log("Failed to complete update: ", err);
@@ -70,14 +70,14 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
       min_temp: weatherData?.minTemp,
       sunrise: weatherData?.sunrise,
       sunset: weatherData?.sunset,
-      wind_gusts: weatherData?.windGusts,
+      wind_gust: weatherData?.windGusts,
       wind_direction: weatherData?.windDirection,
-      //actual_precipitation: weatherData?.precipitation,
+      actual_precipitation: weatherData?.precipitation,
       user_id: userId,
     })
       .then((res) => {
-        console.log("trip updated with USGS data!", res);
-        //onTripUpdated(); //Callback function to Trip.jsx
+        console.log("trip updated with Weather data!", res);
+        onTripUpdated(); //Callback function to Trip.jsx
       })
       .catch((err) => {
         console.log("Failed to complete update: ", err);
@@ -103,7 +103,7 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
     console.log("Fetched weather data:", weatherData);
     await updateTripWeather(weatherData);
 
-    onTripUpdated(); //Callback function to Trip.jsx
+    //onTripUpdated(); //Callback function to Trip.jsx
 
     } catch (err) {
       console.log("Failed to fetch historical data: ", err);
@@ -142,9 +142,15 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
                   <p className="mb-1">
                     <strong>Barometric Pressure:</strong> {trip.barometric_pressure} 
                   </p>
+                  {trip.actual_precipitation == null ? (
                   <p className="mb-1">
                     <strong>Chance of Precipitation:</strong> {trip.precipitation_chance}%
                   </p>
+                  ) : (
+                  <p className="mb-1">
+                    <strong>Precipitation:</strong> {trip.actual_precipitation} in.
+                  </p>
+                  )}
                   <p className="mb-1">
                     <strong>Sunrise:</strong> {trip.sunrise}
                   </p>

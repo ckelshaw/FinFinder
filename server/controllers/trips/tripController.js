@@ -230,9 +230,9 @@ export const updateTripWeather = async (req, res) => {
     min_temp,
     sunrise,
     sunset,
-    wind_gusts,
+    wind_gust,
     wind_direction,
-    //actual_precipitation,
+    actual_precipitation,
     user_id 
   } = req.body;
 
@@ -248,9 +248,9 @@ console.log("Updating weather conditions for trip: ", req.body);
         min_temp,
         sunrise,
         sunset,
-        wind_gusts,
+        wind_gust,
         wind_direction,
-        //actual_precipitation
+        actual_precipitation
        })
       .eq('trip_id', id)
       .select();

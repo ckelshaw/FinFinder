@@ -1,13 +1,15 @@
 import axios from 'axios';
-import { convertToISO, cleanLatLong, formatWeatherResponse } from '../../utils/weatherConversions.js';
+import { convertToISO, isValidFormat, cleanLatLong, formatWeatherResponse } from '../../utils/weatherConversions.js';
 
 //Fetch historical or forcasted weather using open-meteo API
 
 export const fetchWeatherData = async(req, res) => {
-    const {lat, long, date, type} = req.query;
+    let {lat, long, date, type} = req.query;
     const roundedLat = cleanLatLong(lat).toString();
     const roundedLong = cleanLatLong(long).toString();
-    console.log(date);
+    if(!isValidFormat(date)) { //Ensure our date is in ISO format 'YYYY-MM-DD'
+        date = convertToISO(date);
+    }
     const precipParam = type === 'forecast' ? "precipitation_probability_max" : "precipitation_sum";
 
     const baseURL = type === 'forecast'
@@ -31,11 +33,13 @@ export const fetchWeatherData = async(req, res) => {
                 timezone: 'auto'
             }
         });
-        const cleanedData = formatWeatherResponse(response.data.daily);
+        console.log("Unclean weather data: ", response.data.daily);
+        const cleanedData = formatWeatherResponse(response.data.daily, type);
         res.status(200).json(cleanedData)
         console.log("Weather data fetched successfully: ", cleanedData);
     } catch (err) {
         console.error('Weather data fetch error: ', err);
+        console.log(date);
         res.status(500).json({ error: 'Failed to fetch weather data' });
     }
 }

@@ -123,7 +123,7 @@ function FishingConditions({
                     <strong>Barometric Pressure:</strong> {bPressure}
                   </p>
                   <p className="mb-1">
-                    <strong>Chance of Precipitation:</strong> {precipChance}
+                    <strong>Chance of Precipitation:</strong> {precipChance}%
                   </p>
                   <p className="mb-1">
                     <strong>Sunrise:</strong> {sunrise}

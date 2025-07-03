@@ -37,7 +37,31 @@ export const updateTripStreamflow = async ({ id, stream_flow, user_id }) => {
 };
 
 // Update a trip's weather data
-export const updateTripWeather = async ({ id, weather_data, user_id }) => {
-  const res = await api.patch('/trips/update-weather', { id, weather_data, user_id });
+export const updateTripWeather = async ({
+  id,
+  barometric_pressure,
+  wind_mph,
+  max_temp,
+  min_temp,
+  sunrise,
+  sunset,
+  wind_gust,
+  wind_direction,
+  actual_precipitation,
+  user_id,
+}) => {
+  const res = await api.patch("/trips/update-weather", {
+    id,
+    barometric_pressure,
+    wind_mph,
+    max_temp,
+    min_temp,
+    sunrise,
+    sunset,
+    wind_gust,
+    wind_direction,
+    actual_precipitation,
+    user_id,
+  });
   return res.data;
 };
