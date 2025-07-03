@@ -22,6 +22,7 @@ function Trip() { //Page to display details of a specific trip
   try {
     const data = await getTripById(tripId); //Pull the trip details
     setTrip(data);
+    console.log('Trip fetched:', data);
     if(data.usgs_site_code) {
     const siteInfo = await fetchUSGSLatLong(data.usgs_site_code); // Fetch the USGS Lat/Long for the monitoring site the user had selected
     setUSGSLatLong({

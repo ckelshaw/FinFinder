@@ -5,8 +5,10 @@ import {
   markTripAsCompleted,
   updatePostTripNotes as apiUpdatePostTripNotes,
   updateTripStreamflow,
+  updateTripWeather as apiUpdateTripWeather
 } from '../api/trips';
 import { fetchHistoricalUSGSData } from '../api/rivers';
+import { fetchWeatherData } from '../api/weather';
 import { useUser } from '@clerk/clerk-react';
 import LeafletMap from './LeafletMap';
 
@@ -15,6 +17,7 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
   const { user } = useUser();
   const userId = user?.id;
   const [updatedUSGSData, setUpdatedUSGSData] = useState(null);
+  const [isLoadingRealData, setIsLoadingRealData] = useState(false);
 
   const saveAsCompleted = () => { //Update the trip as completed
     markTripAsCompleted({ id: trip.trip_id, user_id: userId })
@@ -50,27 +53,63 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
     })
       .then((res) => {
         console.log("trip updated with USGS data!", res);
-        onTripUpdated(); //Callback function to Trip.jsx
+        //onTripUpdated(); //Callback function to Trip.jsx
       })
       .catch((err) => {
         console.log("Failed to complete update: ", err);
       });
   }
 
-  const fetchRealData = () => { //Call to USGS to get streamflow for the day of the trip. Previous value was for the current conditions on the day the trip was created.
-    fetchHistoricalUSGSData({
-      riverName: trip.river_name,
-      siteCode: trip.usgs_site_code,
-      date: trip.date,
+  const updateTripWeather = (weatherData) =>{ //Update the trip with the new USGS data
+    console.log("Updating trip with weather data:", weatherData);
+    apiUpdateTripWeather({
+      id: trip.trip_id,
+      barometric_pressure: weatherData?.bPressure,
+      wind_mph: weatherData?.windSpeed,
+      max_temp: weatherData?.maxTemp,
+      min_temp: weatherData?.minTemp,
+      sunrise: weatherData?.sunrise,
+      sunset: weatherData?.sunset,
+      wind_gusts: weatherData?.windGusts,
+      wind_direction: weatherData?.windDirection,
+      //actual_precipitation: weatherData?.precipitation,
+      user_id: userId,
     })
       .then((res) => {
-        console.log("Fetched USGS updated data", res);
-        setUpdatedUSGSData(res);
-        updateTrip(res); //Call our function to update the trip with the new data
+        console.log("trip updated with USGS data!", res);
+        //onTripUpdated(); //Callback function to Trip.jsx
       })
       .catch((err) => {
-        console.log("Failed to pull USGS updated data: ", err);
+        console.log("Failed to complete update: ", err);
       });
+  }
+
+  //Call to USGS to get streamflow for the day of the trip and weather api for historical weather data. Previous value was for the current conditions on the day the trip was created.
+  const fetchRealData = async () => { 
+    setIsLoadingRealData(true);
+    try {
+      const streamflowData = await fetchHistoricalUSGSData({
+        riverName: trip.river_name,
+        siteCode: trip.usgs_site_code,
+        date: trip.date
+    });
+    console.log("Fetched USGS data:", streamflowData);
+    setUpdatedUSGSData(streamflowData); 
+    await updateTrip(streamflowData); //Call our function to update the trip with the new data
+
+    // Fetch historical weather data
+    console.log(trip);
+    const weatherData = await fetchWeatherData(trip.latitude, trip.longitude, trip.date, 'historical');
+    console.log("Fetched weather data:", weatherData);
+    await updateTripWeather(weatherData);
+
+    onTripUpdated(); //Callback function to Trip.jsx
+
+    } catch (err) {
+      console.log("Failed to fetch historical data: ", err);
+    } finally {
+      setIsLoadingRealData(false);
+    }
   };
   
 
@@ -93,15 +132,25 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
                 </p>
                 <h6 className="mt-4 mb-2">Forecast</h6>
                 <p className="mb-1">
-                  <strong>Temperature:</strong> {trip.temp}°F
-                </p>
-                <p className="mb-1">
-                  <strong>Wind Speed:</strong> {trip.wind_mph} mph
-                </p>
-                <p className="mb-1">
-                  <strong>Barometric Pressure:</strong>{" "}
-                  {trip.barometric_pressure}
-                </p>
+                    <strong>High:</strong> {trip.max_temp}°F 
+                    <strong> Low:</strong> {trip.min_temp}°F
+                  </p>
+                  <p className="mb-1">
+                    <strong>Wind Speed:</strong> {trip.wind_mph} mph {trip.wind_direction} 
+                    <strong> Gusts:</strong> {trip.wind_gust} mph
+                  </p>
+                  <p className="mb-1">
+                    <strong>Barometric Pressure:</strong> {trip.barometric_pressure} 
+                  </p>
+                  <p className="mb-1">
+                    <strong>Chance of Precipitation:</strong> {trip.precipitation_chance}%
+                  </p>
+                  <p className="mb-1">
+                    <strong>Sunrise:</strong> {trip.sunrise}
+                  </p>
+                  <p className="mb-1">
+                    <strong>Sunset:</strong> {trip.sunset}
+                  </p>
               </div>
 
               {/* Right Column */}
@@ -168,7 +217,7 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
                   className="btn btn-primary rounded-pill px-4"
                   onClick={fetchRealData}
                 >
-                  Fetch actual data for trip
+                  {isLoadingRealData ? 'Updating Trip Data...' : 'Fetch Actual Data for Trip'}
                 </button>
               )}
               <button

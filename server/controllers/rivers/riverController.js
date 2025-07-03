@@ -3,7 +3,6 @@ import axios from 'axios';
 // This controller fetches streamflow data from the USGS API (streamflow data)
 // based on a query parameter for river name, state, and other optional parameters.
 export const getUSGSStreamflow = async (req, res) => {
-  console.log('Fetching USGS streamflow data...');
   const {
     stateCd,
     siteStatus,

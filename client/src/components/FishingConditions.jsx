@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import mockConditions from "../MockConditions";
 import placeholderMap from "../assets/placeholderImage.jpg";
 import { savePlannedTrip } from "../api/trips";
+import { fetchWeatherData } from "../api/weather";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import LeafletMap from "./LeafletMap";
@@ -16,10 +17,16 @@ function FishingConditions({
 }) {
   const { user } = useUser();
   const userId = user?.id;
-  const [temp, setTemp] = useState("");
+  const [maxTemp, setMaxTemp] = useState("");
+  const [minTemp, setMinTemp] = useState("");
+  const [sunrise, setSunrise] = useState("");
+  const [sunset, setSunset] = useState("");
+  const [precipChance, setPrecipChance] = useState("");
   const [bPressure, setBPressure] = useState("");
   const [streamFlow, setStreamFlow] = useState("");
   const [wind, setWind] = useState("");
+  const [windGusts, setWindGusts] = useState("");
+  const [windDirection, setWindDirection] = useState("");
   const [preTripNotes, setPreTripNotes] = useState("");
   const navigate = useNavigate();
 
@@ -32,13 +39,22 @@ function FishingConditions({
       date,
       title,
       preTripNotes,
-      temp,
+      maxTemp,
+      minTemp,
+      sunrise,
+      sunset,
+      precipChance,
       bPressure,
       streamFlow,
       siteCode: usgsSite.siteCode,
       siteName: usgsSite.siteName,
+      latitude: usgsSite.latitude,
+      longitude: usgsSite.longitude,
       wind,
+      windGusts,
+      windDirection,
     };
+    console.log("Trip data:", tripData);
 
     savePlannedTrip(tripData) //method from src/api/trips.js
       .then(() => {
@@ -50,14 +66,32 @@ function FishingConditions({
       });
   };
 
+  const getWeatherData = async () => {
+    try{
+      const data = await fetchWeatherData(usgsSite.latitude, usgsSite.longitude, date, 'forecast');
+      console.log("Weather data fetched successfully: ", data);
+      setMaxTemp(data.maxTemp);
+      setMinTemp(data.minTemp);
+      setSunrise(data.sunrise);
+      setSunset(data.sunset);
+      setPrecipChance(data.precipitation);
+      setBPressure(data.bPressure);
+      setWind(data.windSpeed);
+      setWindGusts(data.windGusts);
+      setWindDirection(data.windDirection);
+    } catch (err) {
+      console.error('Failed to fetch weather data:', err);
+    }
+
+  }
+
   useEffect(() => {
-    //Loading our mock data
-    setTemp(mockConditions.temp);
-    setBPressure(mockConditions.barometric_pressure);
-    //setStreamFlow(mockConditions.stream_flow)
+    console.log("lat", usgsSite);
     setStreamFlow(usgsSite.flow); //Getting the flow from the USGS data
-    setWind(mockConditions.wind_mph);
+    getWeatherData(); //Get the weather data for the selected river and date
   }, []);
+
+  if(!windDirection) return <div>Loading...</div>;
 
   return (
     <>
@@ -78,13 +112,24 @@ function FishingConditions({
                   <p className="mb-2 small">{usgsSite.siteName}</p>
                   <h6 className="mt-4 mb-2">Forecast</h6>
                   <p className="mb-1">
-                    <strong>Temperature:</strong> {temp}°F
+                    <strong>High:</strong> {maxTemp}°F 
+                    <strong> Low:</strong> {minTemp}°F
                   </p>
                   <p className="mb-1">
-                    <strong>Wind Speed:</strong> {wind} mph
+                    <strong>Wind Speed:</strong> {wind} mph {windDirection} 
+                    <strong> Gusts:</strong> {windGusts} mph
                   </p>
                   <p className="mb-1">
                     <strong>Barometric Pressure:</strong> {bPressure}
+                  </p>
+                  <p className="mb-1">
+                    <strong>Chance of Precipitation:</strong> {precipChance}
+                  </p>
+                  <p className="mb-1">
+                    <strong>Sunrise:</strong> {sunrise}
+                  </p>
+                  <p className="mb-1">
+                    <strong>Sunset:</strong> {sunset}
                   </p>
                 </div>
 

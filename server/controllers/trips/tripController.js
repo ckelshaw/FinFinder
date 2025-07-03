@@ -66,12 +66,20 @@ export const createTrip = async (req, res) => {
     date,
     title,
     preTripNotes,
-    temp,
+    maxTemp,
+    minTemp,
+    sunrise,
+    sunset,
+    precipChance,
     bPressure,
     streamFlow,
     siteCode,
     siteName,
-    wind
+    latitude,
+    longitude,
+    wind,
+    windGusts,
+    windDirection
   } = req.body;
 
   try {
@@ -120,12 +128,20 @@ export const createTrip = async (req, res) => {
       .insert([
         {
           trip_id,
-          temp,
+          max_temp: maxTemp,
+          min_temp: minTemp,
+          sunrise,
+          sunset,
+          precipitation_chance: precipChance,
           barometric_pressure: bPressure,
           stream_flow: streamFlow,
           usgs_site_code: siteCode,
           usgs_site_name: siteName,
-          wind_mph: wind
+          latitude: latitude,
+          longitude: longitude,
+          wind_mph: wind,
+          wind_gust: windGusts,
+          wind_direction: windDirection
         }
       ])
       .select();
@@ -199,6 +215,50 @@ export const updatePostTripNotes = async (req, res) => {
     if (error) throw error;
 
     res.status(200).json({ message: 'Post-trip notes updated.', data });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ error: err.message });
+  }
+};
+
+// Update trip's weather conditions
+export const updateTripWeather = async (req, res) => {
+  const { 
+    id, 
+    barometric_pressure,
+    wind_mph,
+    max_temp,
+    min_temp,
+    sunrise,
+    sunset,
+    wind_gusts,
+    wind_direction,
+    //actual_precipitation,
+    user_id 
+  } = req.body;
+
+  try {
+    await verifyTripOwnership(id, user_id);
+console.log("Updating weather conditions for trip: ", req.body);
+    const { data, error } = await supabase
+      .from('conditions')
+      .update({ 
+        barometric_pressure,
+        wind_mph,
+        max_temp,
+        min_temp,
+        sunrise,
+        sunset,
+        wind_gusts,
+        wind_direction,
+        //actual_precipitation
+       })
+      .eq('trip_id', id)
+      .select();
+
+    if (error) throw error;
+    console.log("Weather conditions updated successfully for trip: ", data);
+
+    res.status(200).json({ message: 'Trip streamflow updated.', data });
   } catch (err) {
     res.status(err.statusCode || 500).json({ error: err.message });
   }

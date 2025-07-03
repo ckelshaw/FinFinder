@@ -5,7 +5,8 @@ import {
   updateTripStreamFlow,
   updatePostTripNotes,
   getTripsByUser,
-  getTripById
+  getTripById,
+  updateTripWeather,
 } from '../../controllers/trips/tripController.js';
 
 const router = express.Router();
@@ -16,5 +17,6 @@ router.post('/', createTrip);  // Endpoint to create a new trip, with conditions
 router.patch('/mark-as-completed', markTripAsCompleted); // Endpoint to mark a trip as completed
 router.patch('/update-trip', updateTripStreamFlow); // Endpoint to update the stream flow for a given trip
 router.patch('/update-post-trip-notes', updatePostTripNotes); // Endpoint to update post-trip notes for a given trip
+router.patch('/update-weather', updateTripWeather); // Endpoint to update weather conditions for a given trip
 
 export default router;
