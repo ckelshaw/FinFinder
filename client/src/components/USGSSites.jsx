@@ -15,7 +15,7 @@ function USGSSites({ usgsSites, onSiteSelect }) { //Component to display and sel
           <h5 className="text-center fw-semibold mb-3">
             Select a USGS Site
           </h5>
-          <div className="list-group shadow-sm rounded">
+          <div className="list-group shadow-sm rounded" style={{maxHeight: "200px", overflowY:"auto", scrollbarGutter: 'stable'}}>
             {usgsSites.map((site, index) => (
               <button
                 key={index}
@@ -30,7 +30,7 @@ function USGSSites({ usgsSites, onSiteSelect }) { //Component to display and sel
                     {site.longitude.toFixed(4)}
                   </div>
                 </div>
-                <span className="badge bg-primary rounded-pill">
+                <span className="badge custom-flow-badge rounded-pill">
                   {site.flow} cfs
                 </span>
               </button>

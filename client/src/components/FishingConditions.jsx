@@ -5,7 +5,8 @@ import { savePlannedTrip } from "../api/trips";
 import { fetchWeatherData } from "../api/weather";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
-import LeafletMap from "./LeafletMap";
+import "./FishingConditions.scss";
+import WeatherForecast from "./WeatherForecast";
 
 function FishingConditions({
   riverName,
@@ -67,8 +68,13 @@ function FishingConditions({
   };
 
   const getWeatherData = async () => {
-    try{
-      const data = await fetchWeatherData(usgsSite.latitude, usgsSite.longitude, date, 'forecast');
+    try {
+      const data = await fetchWeatherData(
+        usgsSite.latitude,
+        usgsSite.longitude,
+        date,
+        "forecast"
+      );
       console.log("Weather data fetched successfully: ", data);
       setMaxTemp(data.maxTemp);
       setMinTemp(data.minTemp);
@@ -80,10 +86,9 @@ function FishingConditions({
       setWindGusts(data.windGusts);
       setWindDirection(data.windDirection);
     } catch (err) {
-      console.error('Failed to fetch weather data:', err);
+      console.error("Failed to fetch weather data:", err);
     }
-
-  }
+  };
 
   useEffect(() => {
     console.log("lat", usgsSite);
@@ -91,95 +96,69 @@ function FishingConditions({
     getWeatherData(); //Get the weather data for the selected river and date
   }, []);
 
-  if(!windDirection) return <div>Loading...</div>;
+  if (!windDirection) return <div>Loading...</div>;
 
   return (
     <>
       <div className="container">
         <div className="row justify-content-center">
-          <div className="col-12 col-md-10 col-lg-8">
-            <div className="card shadow-sm p-4 mt-4">
-              <h4 className="text-center mb-4">Conditions</h4>
-              <div className="row">
-                {/* Left Column */}
-                <div className="col-12 col-md-6 mb-4 mb-md-0">
-                  <h5 className="mb-3">
-                    {riverName} on {date}
-                  </h5>
-                  <p className="mb-2">
-                    <strong>Stream Flow:</strong> {streamFlow} cfs
-                  </p>
-                  <p className="mb-2 small">{usgsSite.siteName}</p>
-                  <h6 className="mt-4 mb-2">Forecast</h6>
-                  <p className="mb-1">
-                    <strong>High:</strong> {maxTemp}°F 
-                    <strong> Low:</strong> {minTemp}°F
-                  </p>
-                  <p className="mb-1">
-                    <strong>Wind Speed:</strong> {wind} mph {windDirection} 
-                    <strong> Gusts:</strong> {windGusts} mph
-                  </p>
-                  <p className="mb-1">
-                    <strong>Barometric Pressure:</strong> {bPressure}
-                  </p>
-                  <p className="mb-1">
-                    <strong>Chance of Precipitation:</strong> {precipChance}%
-                  </p>
-                  <p className="mb-1">
-                    <strong>Sunrise:</strong> {sunrise}
-                  </p>
-                  <p className="mb-1">
-                    <strong>Sunset:</strong> {sunset}
-                  </p>
-                </div>
+          <div className="col-lg-10">
+            <h4 className="text-center mb-4">
+              Conditions for {riverName} on {date}
+            </h4>
 
-                {/* Right Column */}
-                <div className="col-12 col-md-6 d-flex justify-content-center align-items-center" >
-                  <LeafletMap site={usgsSite} />
-                  {/* <img
-                    src={placeholderMap}
-                    alt="Map preview"
-                    className="img-fluid rounded shadow-sm"
-                    style={{
-                      maxHeight: "250px",
-                      objectFit: "cover",
-                      width: "100%",
-                    }}
-                  /> */}
-                </div>
-              </div>
-              <div className="mb-4">
-                <label
-                  htmlFor="preTripNotes"
-                  className="form-label fs-6 fw-semibold"
-                >
-                  Pre-Trip Notes
-                </label>
-                <textarea
-                  id="preTripNotes"
-                  className="form-control"
-                  rows="4"
-                  placeholder="Add any thoughts, plans, or gear notes here..."
-                  value={preTripNotes}
-                  onChange={(e) => setPreTripNotes(e.target.value)}
-                ></textarea>
-              </div>
-              <div className="d-flex justify-content-between mt-4">
-                <button
-                  type="button"
-                  className="btn btn-primary rounded-pill px-4"
-                  onClick={saveFishingTrip}
-                >
-                  Save as a Planned Trip!
-                </button>
-                <button
-                  className="btn btn-outline-light rounded-pill px-4"
-                  type="button"
-                  onClick={onClear}
-                >
-                  Clear
-                </button>
-              </div>
+            {/* River Name and Flow Info */}
+            <div className="mb-3 text-center">
+              <h5 className="mb-1 streamFlow">
+                <strong>Stream Flow:</strong> {streamFlow} cfs
+              </h5>
+              <p className="text-muted small">{usgsSite.siteName}</p>
+            </div>
+
+            {/* Weather Info */}
+            <WeatherForecast
+              maxTemp={maxTemp}
+              minTemp={minTemp}
+              wind={wind}
+              windDirection={windDirection}
+              windGusts={windGusts}
+              precipChance={precipChance}
+              bPressure={bPressure}
+              sunrise={sunrise}
+              sunset={sunset}
+            />
+
+            {/* Notes */}
+            <div className="mt-4">
+              <label htmlFor="preTripNotes" className="form-label fw-semibold">
+                Pre-Trip Notes
+              </label>
+              <textarea
+                id="preTripNotes"
+                className="form-control"
+                rows="4"
+                placeholder="Add any thoughts, plans, or gear notes here..."
+                value={preTripNotes}
+                onChange={(e) => setPreTripNotes(e.target.value)}
+              ></textarea>
+            </div>
+
+            {/* Buttons */}
+            <div className="d-flex justify-content-between mt-4">
+              <button
+                type="button"
+                className="btn btn-primary rounded-pill px-4"
+                onClick={saveFishingTrip}
+              >
+                Save as a Planned Trip!
+              </button>
+              <button
+                className="btn btn-outline-light rounded-pill px-4"
+                type="button"
+                onClick={onClear}
+              >
+                Clear
+              </button>
             </div>
           </div>
         </div>

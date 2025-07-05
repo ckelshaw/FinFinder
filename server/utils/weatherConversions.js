@@ -1,8 +1,17 @@
 //Converts barometric pressure from Pascals to inches
 export const convertPressureToInches = (pressure) => {
     pressure = parseFloat(pressure);
-    return pressure * 0.029530795013727448;
+    pressure = pressure * 0.029530795013727448
+    return pressure.toFixed(2);
  }
+
+ export const formatSunriseSunset = (dateTimeString) => {
+   const time = new Date(dateTimeString).toLocaleTimeString([], {
+     hour: "2-digit",
+     minute: "2-digit",
+   });
+   return time;
+ };
 
  //Converts wind direction from degrees to compass points
  export const degreesToCompass = (deg) => {
@@ -37,8 +46,8 @@ export const formatWeatherResponse = (weatherData, type) => {
     time: weatherData.time?.[0],
     maxTemp: weatherData.temperature_2m_max?.[0],
     minTemp: weatherData.temperature_2m_min?.[0],
-    sunrise: weatherData.sunrise?.[0],
-    sunset: weatherData.sunset?.[0],
+    sunrise: formatSunriseSunset(weatherData.sunrise?.[0]),
+    sunset: formatSunriseSunset(weatherData.sunset?.[0]),
     precipitation,
     windGusts: weatherData.wind_speed_10m_max?.[0],
     windDirection: degreesToCompass(weatherData.wind_direction_10m_dominant?.[0]),

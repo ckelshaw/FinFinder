@@ -1,0 +1,119 @@
+@import './finfinder-theme.scss';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+.honolulu-blue {
+  color:$honolulu-blue;
+}
+
+.federal-blue {
+  color:$federal-blue;
+}
+
+.non-photo-blue {
+  color:$non-photo-blue;
+}
+
+.pacific-cyan {
+  color:$pacific-cyan;
+}
+
+.light-cyan {
+  color:$light-cyan;
+}
+
+body {
+  margin: 0;
+  font-family: $font-family-base;
+  color: $light-cyan;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: $headings-font-family;
+  margin-bottom: 0.75rem;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+/* Paragraphs */
+p {
+  font-family: $font-family-base;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: black;
+}
+
+/* Lables */
+label {
+  font-family: $font-family-base;
+  font-size: 0.9rem;
+  color: black;
+}
+
+/* Buttons */
+button,
+.btn {
+  font-family: $font-family-base;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease-in-out;
+
+  &.btn-primary {
+    background-color: $honolulu-blue;
+    border-color: $honolulu-blue;
+
+    &:hover {
+      background-color: darken($honolulu-blue, 10%);
+      border-color: darken($honolulu-blue, 10%);
+    }
+  }
+
+  &.btn-warning {
+    background-color: $warning-orange;
+    border-color: $warning-orange;
+
+    &:hover {
+      background-color: darken($warning-orange, 10%);
+      border-color: darken($warning-orange, 10%);
+    }
+  }
+
+  &.btn-danger {
+    background-color: $error-red;
+    border-color: $error-red;
+
+    &:hover {
+      background-color: darken($error-red, 10%);
+      border-color: darken($error-red, 10%);
+    }
+  }
+}
+
+.yellow {
+  color: $info-yellow;
+}
+
+.orange {
+  color: $warning-orange;
+}
+
+.custom-flow-badge {
+  background-color: $honolulu-blue;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+

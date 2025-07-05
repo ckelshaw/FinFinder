@@ -1,4 +1,4 @@
-import './App.css';
+import './styles/App.scss';
 import { useUser } from '@clerk/clerk-react';
 import { React, useEffect } from 'react';
 import axios from 'axios';

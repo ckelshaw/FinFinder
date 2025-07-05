@@ -1,10 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import App from './App';
 //import reportWebVitals from './reportWebVitals';
 //import bootstrap from 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootswatch/dist/darkly/bootstrap.min.css';
+//import 'bootswatch/dist/darkly/bootstrap.min.css';
+import './styles/custom-bootstrap.scss';
+import './styles/index.scss';
 
 import { ClerkProvider } from '@clerk/clerk-react';
 

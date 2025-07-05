@@ -1,4 +1,4 @@
-import './App.css';
+import './styles/App.scss';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { SignIn, SignUp, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 
