@@ -6,7 +6,7 @@ import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "../MapView.css";
 
-const LeafletMap = ({ sites = [], selectedSite, zoom = 18, onSiteSelect, showPreview }) => {
+const LeafletMap = ({ sites = [], selectedSite, zoom = 18, onSiteSelect, showPreview, showButton }) => {
 
   // Fallback to default if site is missing or doesn't have lat/lng
   const defaultLat = 44.047313;
@@ -66,10 +66,10 @@ const LeafletMap = ({ sites = [], selectedSite, zoom = 18, onSiteSelect, showPre
         <h5>${site.siteName}</h5>
         <p><strong>Site Code:</strong> ${site.siteCode}</p>
         <p><strong>Flow:</strong> ${site.flow} cfs</p>
-        <button class="btn btn-primary select-site-btn">Select</button>
+        ${showButton ? `<button class="btn primary-button select-site-btn">Select</button>` : ""}
       </div>
     `);
-
+    if(showButton) { //Only add the button if we are in the trip planning page
     marker.on("popupopen", (e) => {
       const popupEl = e.popup.getElement();
       const button = popupEl.querySelector(".select-site-btn");
@@ -82,7 +82,7 @@ const LeafletMap = ({ sites = [], selectedSite, zoom = 18, onSiteSelect, showPre
         });
       }
     });
-
+  } 
     markersRef.current.push(marker);
     bounds.extend([lat, lng]);
   });

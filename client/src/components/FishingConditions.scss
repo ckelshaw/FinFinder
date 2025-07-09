@@ -22,21 +22,47 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.95rem;
+  font-size: 1.2rem;
 
   .label {
     font-weight: 600;
     display: flex;
     align-items: center;
+    color: white;
 
     i {
       font-size: 1rem;
-      color: $honolulu-blue; // or any theme variable you defined
+      color: white; // or any theme variable you defined
     }
   }
 
   .value {
     font-weight: 500;
     text-align: right;
+    color: white;
+  }
+}
+
+.streamflow-badge-wrapper {
+  background-color: #102C39;
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 2rem;
+  display: inline-block;
+  margin: 0 auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+  h5,
+  p {
+    margin: 0;
+  }
+
+  h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  p {
+    font-size: 0.8rem;
   }
 }

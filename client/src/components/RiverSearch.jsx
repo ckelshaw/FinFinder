@@ -54,7 +54,7 @@ function RiverSearch({ onGetUsgsSites }) {
   return (
     <div className="container mt-4">
       <div className="position-relative">
-        <h5 className=" text-center">Search for a River</h5>
+        <h5 className="white text-center">Search for a River</h5>
         <div className="mb-3 position-relative">
           <div className="position-relative">
           <input
@@ -72,7 +72,7 @@ function RiverSearch({ onGetUsgsSites }) {
             {rivers.map((river, index) => (
               <li
                 key={index}
-                className="list-group-item hover-shade dropdown"
+                className="list-group-item hover-shade dropdown dark-blue"
                 style={{ cursor: 'pointer' }}
                 onClick={() => findUSGSData({ river })}
               >

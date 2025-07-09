@@ -1,13 +1,14 @@
 import React from 'react';
 import './FishingConditions.scss';
 
-function WeatherForecast({maxTemp, minTemp, wind, windGusts, windDirection, precipChance, bPressure, sunrise, sunset}){
-
+function WeatherForecast({maxTemp, minTemp, wind, windGusts, windDirection, precipChance, bPressure, sunrise, sunset, actualPrecipitation}) {
+  const formattedSunrise = new Date(sunrise).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+  const formattedSunset = new Date(sunset).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
 
     return (
         <>
-        <div className="row border-top pt-3 weather-forecast">
-              <h4 className="text-center honolulu-blue mb-4">Forecast</h4>
+        <div className="row pt-1 weather-forecast">
+              <h2 className="text-center white mb-4">Forecast</h2>
 
               <div className="col-md-6 mb-2">
                 <div className="forecast-line border-bottom pb-1 mb-2">
@@ -43,7 +44,11 @@ function WeatherForecast({maxTemp, minTemp, wind, windGusts, windDirection, prec
                   <div className="label">
                     <i className="bi bi-cloud-drizzle me-2"></i>Precipitation
                   </div>
+                  {actualPrecipitation === undefined || actualPrecipitation === null ? ( //If no actualPrecipitation show the precipChance, otherwise show the actualPrecipitation
                   <div className="value">{precipChance}%</div>
+                  ) : (
+                    <div className="value">{`${actualPrecipitation} in`}</div>
+                  )}
                 </div>
                 <div className="forecast-line border-bottom pb-1 mb-2">
                   <div className="label">
@@ -55,13 +60,13 @@ function WeatherForecast({maxTemp, minTemp, wind, windGusts, windDirection, prec
                   <div className="label">
                     <i className="bi bi-sunrise me-2"></i>Sunrise
                   </div>
-                  <div className="value">{sunrise}</div>
+                  <div className="value">{formattedSunrise}</div>
                 </div>
                 <div className="forecast-line border-bottom pb-1 mb-2">
                   <div className="label">
                     <i className="bi bi-sunset me-2"></i>Sunset
                   </div>
-                  <div className="value">{sunset}</div>
+                  <div className="value">{formattedSunset}</div>
                 </div>
               </div>
             </div>

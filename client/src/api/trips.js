@@ -36,6 +36,14 @@ export const updateTripStreamflow = async ({ id, stream_flow, user_id }) => {
   return res.data;
 };
 
+//Update a trips rating
+export const updateTripRating = async ({ id, rating, user_id }) => {
+  console.log("made it to trips.js");
+  const res = await api.patch('/trips/update-trip-rating', {id, rating, user_id});
+  console.log("called api");
+  return res.data;
+}
+
 // Update a trip's weather data
 export const updateTripWeather = async ({
   id,
@@ -50,6 +58,7 @@ export const updateTripWeather = async ({
   actual_precipitation,
   user_id,
 }) => {
+  console.log("trips.js id:", id);
   const res = await api.patch("/trips/update-weather", {
     id,
     barometric_pressure,

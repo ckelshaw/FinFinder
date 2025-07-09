@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import mockConditions from "../MockConditions";
-import placeholderMap from "../assets/placeholderImage.jpg";
 import { savePlannedTrip } from "../api/trips";
 import { fetchWeatherData } from "../api/weather";
 import { useUser } from "@clerk/clerk-react";
@@ -9,12 +7,15 @@ import "./FishingConditions.scss";
 import WeatherForecast from "./WeatherForecast";
 
 function FishingConditions({
+  trip,
   riverName,
   riverId,
   date,
   title,
   onClear,
   usgsSite,
+  showSaveBtn,
+  tripCreation,
 }) {
   const { user } = useUser();
   const userId = user?.id;
@@ -31,7 +32,10 @@ function FishingConditions({
   const [preTripNotes, setPreTripNotes] = useState("");
   const navigate = useNavigate();
 
+
+
   const saveFishingTrip = () => {
+    const today = new Date().toISOString().split('T')[0];
     const tripData = {
       user_id: userId,
       river_id: riverId,
@@ -54,6 +58,7 @@ function FishingConditions({
       wind,
       windGusts,
       windDirection,
+      last_fetched: today,
     };
     console.log("Trip data:", tripData);
 
@@ -90,76 +95,117 @@ function FishingConditions({
     }
   };
 
-  useEffect(() => {
-    console.log("lat", usgsSite);
-    setStreamFlow(usgsSite.flow); //Getting the flow from the USGS data
-    getWeatherData(); //Get the weather data for the selected river and date
-  }, []);
+  // const fetchStreamflowData = async () => {
+  //   try {
+  //         const streamflowData = await fetchHistoricalUSGSData({
+  //           riverName: trip.river_name,
+  //           siteCode: trip.usgs_site_code,
+  //           date: trip.date
+  //       });
+  //       console.log("Fetched USGS data:", streamflowData);
+  // } catch (err) {
+  //   console.log("Failed to fetch streamflow data: ", err);
+  // }
 
-  if (!windDirection) return <div>Loading...</div>;
+  useEffect(() => {
+    console.log("Show fishing conditions", tripCreation);
+    if(tripCreation){
+      setStreamFlow(usgsSite.flow); //Getting the flow from the USGS data
+      getWeatherData(); //Get the weather data for the selected river and date
+    } else {
+      setStreamFlow(trip.stream_flow);
+    }
+
+  }, []);
+  if ((tripCreation && !windDirection) || (!tripCreation && !trip)) return <div>Loading...</div>;
 
   return (
     <>
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-lg-10">
-            <h4 className="text-center mb-4">
-              Conditions for {riverName} on {date}
-            </h4>
+            <h2 className="text-center mb-4">
+              Conditions for {riverName} on{" "}
+              <span className="orange">{date} </span>
+            </h2>
 
             {/* River Name and Flow Info */}
-            <div className="mb-3 text-center">
-              <h5 className="mb-1 streamFlow">
-                <strong>Stream Flow:</strong> {streamFlow} cfs
-              </h5>
-              <p className="text-muted small">{usgsSite.siteName}</p>
+            <div className="d-flex justify-content-center mb-4">
+              <div className="streamflow-badge-wrapper text-center justify-content-center">
+                <h3 className="mb-1 streamFlow white">
+                  <strong className="orange">STREAM FLOW:</strong> <br />{" "}
+                  {streamFlow} cfs
+                </h3>
+                <p className="small mb-0 white">{usgsSite.siteName}</p>
+              </div>
             </div>
 
             {/* Weather Info */}
-            <WeatherForecast
-              maxTemp={maxTemp}
-              minTemp={minTemp}
-              wind={wind}
-              windDirection={windDirection}
-              windGusts={windGusts}
-              precipChance={precipChance}
-              bPressure={bPressure}
-              sunrise={sunrise}
-              sunset={sunset}
-            />
+            {tripCreation ? ( //If creating the trip we wont have the trip data yet
+              <WeatherForecast
+                maxTemp={maxTemp}
+                minTemp={minTemp}
+                wind={wind}
+                windDirection={windDirection}
+                windGusts={windGusts}
+                precipChance={precipChance}
+                bPressure={bPressure}
+                sunrise={sunrise}
+                sunset={sunset}
+              />
+            ) : (
+              <WeatherForecast
+                maxTemp={trip.max_temp}
+                minTemp={trip.min_temp}
+                wind={trip.wind_mph}
+                windDirection={trip.wind_direction}
+                windGusts={trip.wind_gust}
+                precipChance={trip.precipitation_chance}
+                actualPrecipitation={trip.actual_precipitation}
+                bPressure={trip.barometric_pressure}
+                sunrise={trip.sunrise}
+                sunset={trip.sunset}
+              />
+            )}
 
             {/* Notes */}
-            <div className="mt-4">
-              <label htmlFor="preTripNotes" className="form-label fw-semibold">
-                Pre-Trip Notes
-              </label>
-              <textarea
-                id="preTripNotes"
-                className="form-control"
-                rows="4"
-                placeholder="Add any thoughts, plans, or gear notes here..."
-                value={preTripNotes}
-                onChange={(e) => setPreTripNotes(e.target.value)}
-              ></textarea>
-            </div>
-
+            {showSaveBtn && (
+              <div className="mt-4">
+                <label
+                  htmlFor="preTripNotes"
+                  className="form-label fw-semibold white"
+                >
+                  Pre-Trip Notes
+                </label>
+                <textarea
+                  id="preTripNotes"
+                  className="form-control"
+                  rows="4"
+                  placeholder="Add any thoughts, plans, or gear notes here..."
+                  value={preTripNotes}
+                  onChange={(e) => setPreTripNotes(e.target.value)}
+                ></textarea>
+              </div>
+            )}
             {/* Buttons */}
-            <div className="d-flex justify-content-between mt-4">
-              <button
-                type="button"
-                className="btn btn-primary rounded-pill px-4"
-                onClick={saveFishingTrip}
-              >
-                Save as a Planned Trip!
-              </button>
-              <button
-                className="btn btn-outline-light rounded-pill px-4"
-                type="button"
-                onClick={onClear}
-              >
-                Clear
-              </button>
-            </div>
+            {showSaveBtn && ( //Only show the save as a planned trip button if the date of the trip is today or in the past
+              <div className="d-flex justify-content-between mt-4">
+                <button
+                  type="button"
+                  className="btn primary-button rounded-pill px-4"
+                  onClick={saveFishingTrip}
+                >
+                  Save as a Planned Trip!
+                </button>
+                <button
+                  className="btn btn-outline-light rounded-pill px-4"
+                  type="button"
+                  onClick={onClear}
+                >
+                  Clear
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

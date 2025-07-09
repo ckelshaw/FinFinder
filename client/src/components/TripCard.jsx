@@ -1,6 +1,5 @@
 // components/TripDetailsCard.jsx
-import React, { useState } from 'react';
-import placeholderMap from '../assets/placeholderImage.jpg';
+import React, { useState, useEffect } from 'react';
 import {
   markTripAsCompleted,
   updatePostTripNotes as apiUpdatePostTripNotes,
@@ -8,27 +7,129 @@ import {
   updateTripWeather as apiUpdateTripWeather
 } from '../api/trips';
 import { fetchHistoricalUSGSData } from '../api/rivers';
-import { fetchWeatherData } from '../api/weather';
+import { fetchHistoricalWeatherData } from '../api/weather';
 import { useUser } from '@clerk/clerk-react';
 import LeafletMap from './LeafletMap';
+import FishingConditions from './FishingConditions';
+import TripRating from './TripRating';
+import { format } from 'date-fns';
+
 
 function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
   const [postTripNotes, setPostTripNotes] = useState('');
   const { user } = useUser();
   const userId = user?.id;
-  const [updatedUSGSData, setUpdatedUSGSData] = useState(null);
-  const [isLoadingRealData, setIsLoadingRealData] = useState(false);
+  const selectedSite = {
+    latitude: trip.latitude,
+    longitude: trip.longitude,
+    siteName: trip.usgs_site_name,
+    siteCode: trip.usgs_site_code,
+    flow: trip.stream_flow,
+  };
 
-  const saveAsCompleted = () => { //Update the trip as completed
+  const today = format(new Date(), 'yyy-MM-dd');
+
+  useEffect(() => {
+    const tripLastFetched = format(new Date(), 'yyy-MM-dd');
+    if (tripLastFetched < today && !trip.completed) {
+      const fetchAndUpdate = async () => {
+        console.log("entered if statement");
+        //If the conditions have not been updated since the user viewed the trip and it is still a planned trip
+        try {
+          const data = await fetchHistoricalData();
+          console.log("fetched data: ", data);
+          await updateTripFlow(data.weather);
+          await updateTripWeather(data.streamflow);
+          console.log("Updated trip with most up to date data.");
+        } catch (err) {
+          console.log("Failed to update trip with most up to date data: ", err);
+        }
+      };
+      fetchAndUpdate();
+    }
+  }, []); 
+
+    const fetchHistoricalData = async () => {
+      const tripDate = new Date(trip.date);
+      const weatherType = tripDate >= today ? 'forecast' : 'archive';
+      try {
+        // Run both requests in parallel
+        const [weatherData, streamflowData] = await Promise.all([
+          fetchHistoricalWeatherData(
+            trip.latitude,
+            trip.longitude,
+            trip.date,
+            weatherType
+          ),
+          fetchHistoricalUSGSData({
+            riverName: trip.river_name,
+            siteCode: trip.usgs_site_code,
+            date: trip.date,
+          }),
+        ]);
+
+        console.log("Fetched weather data:", weatherData);
+        console.log("Fetched streamflow data:", streamflowData);
+
+        // Combine and return both
+        return {
+          weather: weatherData,
+          streamflow: streamflowData[0],
+        };
+      } catch (err) {
+        console.error("Error fetching historical data:", err);
+        return null;
+      }
+    };
+
+  const saveAsCompleted = async () => {
+    //Get the historical streamflow and weather data and update the trip as completed
+    const updatedData = await fetchHistoricalData();
+    console.log("updated data: ", updatedData);
+    const formattedWeatherData = {
+      id: trip.trip_id,
+      barometric_pressure: updatedData.weather.bPressure,
+      wind_mph: updatedData.weather.windSpeed,
+      max_temp: updatedData.weather.maxTemp,
+      min_temp: updatedData.weather.minTemp,
+      sunrise: updatedData.weather.sunrise,
+      sunset: updatedData.weather.sunset,
+      wind_gust: updatedData.weather.windGusts,
+      wind_direction: updatedData.weather.windDirection,
+      actual_precipitation: updatedData.weather.precipitation,
+      user_id: userId
+    }
+    console.log(formattedWeatherData)
+    apiUpdateTripWeather(formattedWeatherData)
+      .then((res) => {
+        console.log("weather updated: ", res.data)
+    })
+    .catch((err) => {
+      console.log("Failed to update weather: ", err);
+    });
+
+    const formattedStreamFlowData = {
+      id: trip.trip_id,
+      stream_flow: updatedData.streamflow.flow,
+      user_id: userId
+    }
+    updateTripStreamflow(formattedStreamFlowData)
+      .then((res) => {
+        console.log("streamflow updated: ", res.data)
+    })
+    .catch((err) => {
+      console.log("Failed to update streamflow: ", err);
+    });
+    
     markTripAsCompleted({ id: trip.trip_id, user_id: userId })
-    .then(res => {
-        console.log("trip updated!", res.data)
+      .then((res) => {
+        console.log("trip updated!", res.data);
         onTripUpdated(); //Callback function to Trip.jsx
-    })
-    .catch(err => {
-      console.log('Failed to complete update: ', err)
-    })
-  }
+      })
+      .catch((err) => {
+        console.log("Failed to complete update: ", err);
+      });
+  };
 
   const updatePostTripNotes = (pTripNotes) => { //Update the trip with the post-trip notes
     apiUpdatePostTripNotes({
@@ -45,7 +146,8 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
     })
   }
 
-  const updateTrip = (usgsData) =>{ //Update the trip with the new USGS data
+  const updateTripFlow = (usgsData) =>{ //Update the trip with the new USGS data
+    console.log("usgs data: ", usgsData);
     updateTripStreamflow({
       id: trip.trip_id,
       stream_flow: usgsData?.[0]?.flow,
@@ -84,89 +186,45 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
       });
   }
 
-  //Call to USGS to get streamflow for the day of the trip and weather api for historical weather data. Previous value was for the current conditions on the day the trip was created.
-  const fetchRealData = async () => { 
-    setIsLoadingRealData(true);
-    try {
-      const streamflowData = await fetchHistoricalUSGSData({
-        riverName: trip.river_name,
-        siteCode: trip.usgs_site_code,
-        date: trip.date
-    });
-    console.log("Fetched USGS data:", streamflowData);
-    setUpdatedUSGSData(streamflowData); 
-    await updateTrip(streamflowData); //Call our function to update the trip with the new data
-
-    // Fetch historical weather data
-    console.log(trip);
-    const weatherData = await fetchWeatherData(trip.latitude, trip.longitude, trip.date, 'historical');
-    console.log("Fetched weather data:", weatherData);
-    await updateTripWeather(weatherData);
-
-    //onTripUpdated(); //Callback function to Trip.jsx
-
-    } catch (err) {
-      console.log("Failed to fetch historical data: ", err);
-    } finally {
-      setIsLoadingRealData(false);
-    }
-  };
-  
-
   if (!trip || !usgsSiteLatLong.latitude) return <h1>Loading...</h1>;
 
   return (
-    <div className="container">
+    <div className="container py-5">
       <div className="row justify-content-center">
-        <div className="col-12 col-md-10 col-lg-8">
-          <div className="card shadow-sm p-4 mt-4">
-            <h4 className="text-center mb-4">{trip.title}</h4>
+        <div className="col-12 col-md-10 col-lg-12">
+          <div className="card shadow-lg p-4">
+            <h2 className="text-center mb-4">{trip.title}</h2>
             <div className="row">
               {/* Left Column */}
               <div className="col-12 col-md-6 mb-4 mb-md-0">
-                <h5 className="mb-3">
-                  {trip.river_name} on {trip.date}
-                </h5>
-                <p className="mb-2">
-                  <strong>Stream Flow:</strong> {trip.stream_flow} cfs
-                </p>
-                <h6 className="mt-4 mb-2">Forecast</h6>
-                <p className="mb-1">
-                    <strong>High:</strong> {trip.max_temp}°F 
-                    <strong> Low:</strong> {trip.min_temp}°F
-                  </p>
-                  <p className="mb-1">
-                    <strong>Wind Speed:</strong> {trip.wind_mph} mph {trip.wind_direction} 
-                    <strong> Gusts:</strong> {trip.wind_gust} mph
-                  </p>
-                  <p className="mb-1">
-                    <strong>Barometric Pressure:</strong> {trip.barometric_pressure} 
-                  </p>
-                  {trip.actual_precipitation == null ? (
-                  <p className="mb-1">
-                    <strong>Chance of Precipitation:</strong> {trip.precipitation_chance}%
-                  </p>
-                  ) : (
-                  <p className="mb-1">
-                    <strong>Precipitation:</strong> {trip.actual_precipitation} in.
-                  </p>
-                  )}
-                  <p className="mb-1">
-                    <strong>Sunrise:</strong> {trip.sunrise}
-                  </p>
-                  <p className="mb-1">
-                    <strong>Sunset:</strong> {trip.sunset}
-                  </p>
+                <FishingConditions
+                  trip={trip}
+                  riverName={trip.river_name}
+                  riverId={trip.river_id}
+                  date={trip.date}
+                  title={trip.title}
+                  streamFlow={trip.stream_flow}
+                  usgsSite={selectedSite}
+                  showSaveBtn={false}
+                />
+                <div className="d-flex justify-content-center mb-4">
+                  <label
+                    htmlFor="preTripNotes"
+                    className="form-label fs-6 fw-semibold white text-center justify-content-center"
+                  >
+                    Pre-Trip Notes
+                  </label>
+                  <p className="white">{`: ${trip.pre_trip_notes}`}</p>
+                </div>
               </div>
 
               {/* Right Column */}
               <div className="col-12 col-md-6 d-flex justify-content-center align-items-center">
                 {trip.usgs_site_code ? (
-                  <LeafletMap site={usgsSiteLatLong} />
+                  <LeafletMap selectedSite={selectedSite} showButton={false} />
                 ) : (
                   <p className="text-warning">No USGS site data available</p>
-                )
-                }         
+                )}
                 {/* <img
                   src={placeholderMap}
                   alt="Map preview"
@@ -179,20 +237,12 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
                 /> */}
               </div>
             </div>
-            <div className="mb-4">
-              <label
-                htmlFor="preTripNotes"
-                className="form-label fs-6 fw-semibold"
-              >
-                Pre-Trip Notes
-              </label>
-              <p className="card-text">{trip.pre_trip_notes}</p>
-            </div>
-            {trip.completed && 
+
+            {trip.completed && (
               <div className="mb-4">
                 <label
                   htmlFor="postTripNotes"
-                  className="form-label fs-6 fw-semibold"
+                  className="form-label fs-6 fw-semibold orange"
                 >
                   Post-Trip Notes
                 </label>
@@ -206,25 +256,19 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
                   onBlur={updatePostTripNotes}
                 ></textarea>
               </div>
-            }
-            <div className="d-flex justify-content-between">
-              {!trip.completed && ( //Show the Save as Completed button if the trip is not completed.
+            )}
+            <div className="d-flex justify-content-between pt-2">
+              {!trip.completed && trip.date <= today && ( //Show the Save as Completed button if the trip is not completed and the trip date is today or in the past.
                 <button
                   type="button"
-                  className="btn btn-primary rounded-pill px-4"
+                  className="btn primary-button rounded-pill px-4"
                   onClick={saveAsCompleted}
                 >
                   Save as a Completed Trip!
                 </button>
               )}
-              {trip.completed && ( //Show the Fetch actual data for date button if the trip is completed.
-                <button
-                  type="button"
-                  className="btn btn-primary rounded-pill px-4"
-                  onClick={fetchRealData}
-                >
-                  {isLoadingRealData ? 'Updating Trip Data...' : 'Fetch Actual Data for Trip'}
-                </button>
+              {trip.completed && (
+                <TripRating trip={trip} userId={userId} readOnly={false}></TripRating>
               )}
               <button
                 type="button"

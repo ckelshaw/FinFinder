@@ -12,7 +12,7 @@ function USGSSites({ usgsSites, onSiteSelect }) { //Component to display and sel
     return (
       <>
         <div className="mt-4">
-          <h5 className="text-center fw-semibold mb-3">
+          <h5 className="text-center fw-semibold mb-3 white">
             Select a USGS Site
           </h5>
           <div className="list-group shadow-sm rounded" style={{maxHeight: "200px", overflowY:"auto", scrollbarGutter: 'stable'}}>
@@ -24,7 +24,7 @@ function USGSSites({ usgsSites, onSiteSelect }) { //Component to display and sel
                 onClick={() => handleSelectSite(site)}
               >
                 <div>
-                  <strong>{site.siteName}</strong>
+                  <strong className='dark-blue'>{site.siteName}</strong>
                   <div className="text-muted small">
                     {site.siteCode} | {site.latitude.toFixed(4)},{" "}
                     {site.longitude.toFixed(4)}

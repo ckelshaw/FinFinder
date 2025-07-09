@@ -79,7 +79,8 @@ export const createTrip = async (req, res) => {
     longitude,
     wind,
     windGusts,
-    windDirection
+    windDirection,
+    last_fetched
   } = req.body;
 
   try {
@@ -141,7 +142,8 @@ export const createTrip = async (req, res) => {
           longitude: longitude,
           wind_mph: wind,
           wind_gust: windGusts,
-          wind_direction: windDirection
+          wind_direction: windDirection,
+          last_fetched: last_fetched
         }
       ])
       .select();
@@ -186,9 +188,12 @@ export const updateTripStreamFlow = async (req, res) => {
   try {
     await verifyTripOwnership(id, user_id);
 
+    const now = new Date();
+    const dateOnly = now.toISOString().split('T')[0];
+
     const { data, error } = await supabase
       .from('conditions')
-      .update({ stream_flow })
+      .update({ stream_flow, last_fetched: dateOnly })
       .eq('trip_id', id)
       .select();
 
@@ -220,6 +225,26 @@ export const updatePostTripNotes = async (req, res) => {
   }
 };
 
+//Update a trips rating
+export const updateTripRating = async (req, res) => {
+  const { id, rating, user_id } = req.body;
+
+  try {
+    await verifyTripOwnership(id, user_id);
+
+    const { data, error } = await supabase
+      .from('fishing_trip')
+      .update({ rating })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    res.status(200).json({ message: 'rating updated.', data });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ error: err.message });
+  }
+}
+
 // Update trip's weather conditions
 export const updateTripWeather = async (req, res) => {
   const { 
@@ -233,11 +258,17 @@ export const updateTripWeather = async (req, res) => {
     wind_gust,
     wind_direction,
     actual_precipitation,
-    user_id 
+    user_id
   } = req.body;
-
+console.log("request body: ",req.body);
   try {
+    console.log('id:', id)
+    console.log('user id:', user_id)
     await verifyTripOwnership(id, user_id);
+
+    const now = new Date();
+    const dateOnly = now.toISOString().split('T')[0];
+
 console.log("Updating weather conditions for trip: ", req.body);
     const { data, error } = await supabase
       .from('conditions')
@@ -250,7 +281,8 @@ console.log("Updating weather conditions for trip: ", req.body);
         sunset,
         wind_gust,
         wind_direction,
-        actual_precipitation
+        actual_precipitation,
+        last_fetched: dateOnly
        })
       .eq('trip_id', id)
       .select();

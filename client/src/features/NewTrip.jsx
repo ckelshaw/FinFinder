@@ -67,21 +67,21 @@ function NewTrip() {
           <div className="col-12 col-md-10 col-lg-12">
             <div className="card shadow-lg p-4">
               {!title && (
-              <h2 className="fw-bold text-center text-uppercase mb-4">
+              <h2 className="fw-bold text-center text-uppercase mb-4 white">
                 Plan Your Next Trip
               </h2>
               )}
               {title && (
                 <h3
                   id="trip-name"
-                  className="text-center text-uppercase honolulu-blue mb-4"
+                  className="text-center text-uppercase white mb-4"
                 >
                   {title}
                 </h3>
               )}
-              <div className="row">
+              <div className="row g-1">
                 {/* Left side: Form + Conditions */}
-                <div className="col-md-6">
+                <div className="col-md-6 p-1">
                   {!showPreview && (
                     <form onSubmit={handleSubmit}>
                       <div className="mb-4">
@@ -101,9 +101,6 @@ function NewTrip() {
 
                       {river && (
                         <div className="mb-4">
-                          <label className="form-label fs-6 fw-semibold">
-                            Select a date for your trip
-                          </label>
                           <DatePicker onChange={handleDateChange} />
                         </div>
                       )}
@@ -112,7 +109,7 @@ function NewTrip() {
                         <div className="d-flex justify-content-between">
                           <button
                             type="submit"
-                            className="btn btn-primary rounded-pill px-4"
+                            className="btn primary-button rounded-pill px-4"
                           >
                             Go
                           </button>
@@ -138,6 +135,8 @@ function NewTrip() {
                         title={title}
                         onClear={clearForm}
                         usgsSite={selectedUsgsSite}
+                        showSaveBtn={true}
+                        tripCreation={true}
                       />
                     </div>
                   )}
@@ -155,6 +154,7 @@ function NewTrip() {
                       selectedSite={selectedUsgsSite}
                       onSiteSelect={handleStreamflowSelection}
                       showForecast={showPreview}
+                      showButton={true}
                     />
                   </div>
                 </div>

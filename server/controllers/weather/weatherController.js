@@ -33,10 +33,8 @@ export const fetchWeatherData = async(req, res) => {
                 timezone: 'auto'
             }
         });
-        console.log("Unclean weather data: ", response.data.daily);
         const cleanedData = formatWeatherResponse(response.data.daily, type);
         res.status(200).json(cleanedData)
-        console.log("Weather data fetched successfully: ", cleanedData);
     } catch (err) {
         console.error('Weather data fetch error: ', err);
         console.log(date);

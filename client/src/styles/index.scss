@@ -21,18 +21,31 @@
   color:$light-cyan;
 }
 
+.dark-blue {
+  color: #0E2E3A
+}
+
+.white {
+  color: white;
+}
+
 body {
   margin: 0;
   font-family: $font-family-base;
-  color: $light-cyan;
+  background-color: $darkest-blue;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.card {
+  background-color: $dark-blue;
 }
 
 /* Headings */
 h1, h2, h3, h4, h5, h6 {
   font-family: $headings-font-family;
   margin-bottom: 0.75rem;
+  color: white;
 }
 
 h1 {
@@ -108,8 +121,26 @@ button,
   color: $warning-orange;
 }
 
+.primary-button {
+  background-color: $warning-orange;
+  color: white;
+  &:hover {
+    background-color: darken($warning-orange, 10%);
+    color: white;
+  }
+}
+
 .custom-flow-badge {
-  background-color: $honolulu-blue;
+  background-color: $warning-orange;
+  color: white;
+  font-weight: bold;
+  font-family: $headings-font-family;
+}
+
+.date-picker {
+  background-color: $warning-orange;
+  color: $dark-blue;
+  border-color: $warning-orange;
 }
 
 code {

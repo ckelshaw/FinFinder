@@ -16,8 +16,8 @@ function DateInput({ onChange }){ //passing in the parents handleChange method
         <DatePicker 
             selected={selectedDate}
             onChange={handleChange}
-            className="form-control"
-            placeholderText='Select a Date'
+            className="form-control date-picker"
+            placeholderText='Select a Date...'
         />
     );
 }
