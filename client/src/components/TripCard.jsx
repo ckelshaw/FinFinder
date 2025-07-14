@@ -15,7 +15,7 @@ import TripRating from './TripRating';
 import { format } from 'date-fns';
 
 
-function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
+function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
   const [postTripNotes, setPostTripNotes] = useState('');
   const { user } = useUser();
   const userId = user?.id;
@@ -206,6 +206,7 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong }) {
                   streamFlow={trip.stream_flow}
                   usgsSite={selectedSite}
                   showSaveBtn={false}
+                  fishingSpots={fishingSpots}
                 />
                 <div className="d-flex justify-content-center mb-4">
                   <label

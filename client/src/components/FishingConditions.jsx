@@ -16,6 +16,8 @@ function FishingConditions({
   usgsSite,
   showSaveBtn,
   tripCreation,
+  fishingSpots,
+  selectedSpot,
 }) {
   const { user } = useUser();
   const userId = user?.id;
@@ -32,45 +34,94 @@ function FishingConditions({
   const [preTripNotes, setPreTripNotes] = useState("");
   const navigate = useNavigate();
 
+  //Old method of saving trip
+  // const saveFishingTrip = () => {
+  //   const today = new Date().toISOString().split('T')[0];
+  //   const tripData = {
+  //     user_id: userId,
+  //     river_id: riverId,
+  //     river_name: riverName,
+  //     state: "ID", //TODO: get the state from the user
+  //     date,
+  //     title,
+  //     preTripNotes,
+  //     maxTemp,
+  //     minTemp,
+  //     sunrise,
+  //     sunset,
+  //     precipChance,
+  //     bPressure,
+  //     streamFlow,
+  //     siteCode: usgsSite.siteCode,
+  //     siteName: usgsSite.siteName,
+  //     latitude: usgsSite.latitude,
+  //     longitude: usgsSite.longitude,
+  //     wind,
+  //     windGusts,
+  //     windDirection,
+  //     last_fetched: today,
+  //   };
+  //   console.log("Trip data:", tripData);
 
+  //   savePlannedTrip(tripData) //method from src/api/trips.js
+  //     .then(() => {
+  //       console.log("Trip saved");
+  //       navigate("/my-trips");
+  //     })
+  //     .catch((err) => {
+  //       console.log("Failed to save trip:", err);
+  //     });
+  // };
 
+  //New method of saving trip with sproc
   const saveFishingTrip = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const tripData = {
-      user_id: userId,
-      river_id: riverId,
-      river_name: riverName,
-      state: "ID",
-      date,
-      title,
-      preTripNotes,
-      maxTemp,
-      minTemp,
-      sunrise,
-      sunset,
-      precipChance,
-      bPressure,
-      streamFlow,
-      siteCode: usgsSite.siteCode,
-      siteName: usgsSite.siteName,
-      latitude: usgsSite.latitude,
-      longitude: usgsSite.longitude,
-      wind,
-      windGusts,
-      windDirection,
-      last_fetched: today,
-    };
-    console.log("Trip data:", tripData);
+  const today = new Date().toISOString().split('T')[0];
 
-    savePlannedTrip(tripData) //method from src/api/trips.js
-      .then(() => {
-        console.log("Trip saved");
-        navigate("/my-trips");
-      })
-      .catch((err) => {
-        console.log("Failed to save trip:", err);
-      });
+  const tripData = {
+    user_id: userId,
+    river_id: riverId,
+    river_name: riverName,
+    state: "ID", // TODO: eventually get this from the user
+
+    date,
+    title,
+    preTripNotes,
+    postTripNotes: null,
+    completed: false,
+    rating: null,
+
+    maxTemp,
+    minTemp,
+    sunrise,
+    sunset,
+    precipChance,
+    bPressure,
+    streamFlow,
+
+    siteCode: usgsSite?.siteCode || '',
+    siteName: usgsSite?.siteName || '',
+    latitude: usgsSite?.latitude || 0,
+    longitude: usgsSite?.longitude || 0,
+    wind,
+    windGusts,
+    windDirection,
+
+    last_fetched: today,
+
+    fishingSpots // This should be an array of { name, lat, lng }
   };
+
+  console.log("Trip data being saved:", tripData);
+
+  savePlannedTrip(tripData)
+    .then(() => {
+      console.log("Trip saved");
+      navigate("/my-trips");
+    })
+    .catch((err) => {
+      console.error("Failed to save trip:", err);
+    });
+};
 
   const getWeatherData = async () => {
     try {
@@ -94,6 +145,7 @@ function FishingConditions({
       console.error("Failed to fetch weather data:", err);
     }
   };
+
 
   // const fetchStreamflowData = async () => {
   //   try {
@@ -170,7 +222,7 @@ function FishingConditions({
 
             {/* Notes */}
             {showSaveBtn && (
-              <div className="mt-4">
+              <div className="mt-2">
                 <label
                   htmlFor="preTripNotes"
                   className="form-label fw-semibold white"
@@ -185,6 +237,24 @@ function FishingConditions({
                   value={preTripNotes}
                   onChange={(e) => setPreTripNotes(e.target.value)}
                 ></textarea>
+              </div>
+            )}
+            {fishingSpots.length > 0 && (
+              <div className="d-flex justify-content-center mt-2">
+                <div className="text-center justify-content-center">
+                  <h5 className="streamFlow white">
+                    <strong className="orange">Fishing Spots:</strong> <br />
+                      <div className="fishing-spot-list">
+                      {fishingSpots.map((spot, index) => (
+                        <span key={index}
+                          onClick={() => selectedSpot(spot)}
+                        >
+                          {spot.name}{index < fishingSpots.length - 1 ? ', ' : ''}
+                        </span>
+                      ))}
+                      </div>
+                  </h5>
+                </div>
               </div>
             )}
             {/* Buttons */}

@@ -18,12 +18,14 @@ import tripRoutes from './routes/trips/tripRoutes.js';
 import userRoutes from './routes/users/userRoutes.js';
 import riverRoutes from './routes/rivers/riverRoutes.js';
 import weatherRoutes from './routes/weather/weatherRoutes.js';
+import spotRoutes from './routes/spots/spotRoutes.js'
 
 // Route mounting
 app.use('/api/trips', tripRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/rivers', riverRoutes);
 app.use('/api/weather', weatherRoutes);
+app.use('/api/spots', spotRoutes);
 
 // Health check route
 app.get('/', (req, res) => {

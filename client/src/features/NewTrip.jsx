@@ -20,8 +20,7 @@ function NewTrip() {
   const [showUSGSMessage, setShowUSGSMessage] = useState(false);
   const [isAddingSpot, setIsAddingSpot] = useState(false);
   const [fishingSpots, setFishingSpots] = useState([]); //lat, lng, river, name
-
-  console.log("Is Adding Spot: ", isAddingSpot);
+  const [focusedSpot, setFocusedSpot] = useState(null);
 
   const handleStreamflowSelection = (site) => { //When user selects a USGS site from the dropdown
     setSelectedUsgsSite(site);
@@ -67,6 +66,11 @@ function NewTrip() {
     e.preventDefault();
     setShowPreview(true);
   };
+
+  const selectSpot = (spot) => {
+    console.log(`fishing spot lat and long: ${spot.lat}, ${spot.lng}`);
+    setFocusedSpot(spot);
+  }
 
   return (
     <>
@@ -160,28 +164,12 @@ function NewTrip() {
                           usgsSite={selectedUsgsSite}
                           showSaveBtn={true}
                           tripCreation={true}
+                          fishingSpots={fishingSpots}
+                          selectedSpot={selectSpot}
                         />
                       </div>
                     )}
-                    {fishingSpots.length > 0 && (
-                    <div className="d-flex justify-content-center mb-4">
-                      <div className="streamflow-badge-wrapper text-center justify-content-center">
-                        <h3 className="mb-1 streamFlow white">
-                          <strong className="orange">Fishing Spots:</strong>{" "}
-                          <br /> 
-                          <ul className="list-unstyled mt-2">
-                          {fishingSpots.map((spot, index) => ( 
-                            <li
-                              key={index}
-                            >
-                              {spot.name}
-                            </li>  
-                          ))}
-                          </ul>
-                        </h3>
-                      </div>
-                    </div>
-                    )}
+                    
                   </div>
                 </div>
                 {/* Right side: Map and Add Fishing Spot Button */}
@@ -200,6 +188,7 @@ function NewTrip() {
                       onAddFishingSpot={handleMapClick}
                       isAddingSpot={isAddingSpot}
                       fishingSpots={fishingSpots}
+                      focusedSpot={focusedSpot}
                     />
                   </div>
                   {showPreview && !isAddingSpot && (

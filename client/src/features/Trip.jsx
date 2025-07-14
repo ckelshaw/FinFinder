@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getTripById } from '../api/trips';
+import { fetchSpotForTrip } from '../api/spots';
 import { fetchUSGSLatLong } from "../api/rivers";
 import { useParams } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
@@ -9,6 +10,7 @@ import Navbar from "../components/Navbar";
 function Trip() { //Page to display details of a specific trip
 
   const [trip, setTrip] = useState(null);
+  const [fishingSpots, setFishingSpots] = useState([]);
   const { tripId } = useParams();
   const { user } = useUser();
   const [usgsLatLong, setUSGSLatLong] = useState([]);
@@ -35,6 +37,9 @@ function Trip() { //Page to display details of a specific trip
       longitude: siteInfo.longitude,
       flow: data.stream_flow
     });
+    const spotData = await fetchSpotForTrip(tripId); //Pull the fishing spots for the trip
+    setFishingSpots(spotData);
+    console.log("Fishing Spots: ", spotData);
   }
   } catch (err) {
     console.error('Error fetching trip:', err);
@@ -45,7 +50,7 @@ function Trip() { //Page to display details of a specific trip
   return (
     <>
     <Navbar />
-    <TripCard trip={trip} onTripUpdated={fetchTripDetails} usgsSiteLatLong={usgsLatLong} />
+    <TripCard trip={trip} onTripUpdated={fetchTripDetails} usgsSiteLatLong={usgsLatLong} fishingSpots={fishingSpots} />
     </>
   
   );

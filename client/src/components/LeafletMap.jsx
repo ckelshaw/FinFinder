@@ -16,6 +16,7 @@ const LeafletMap = ({
   onAddFishingSpot,
   isAddingSpot,
   fishingSpots,
+  focusedSpot,
 }) => {
   // Fallback to default if site is missing or doesn't have lat/lng
   const defaultLat = 44.047313;
@@ -170,6 +171,29 @@ const LeafletMap = ({
     spotMarkersRef.current.push(marker);
   });
 }, [fishingSpots]);
+
+//Cetner the map on the selected Fishing Spot
+useEffect(() => {
+  if (focusedSpot && mapRef.current && spotMarkersRef.current.length > 0) {
+    const { lat, lng, name } = focusedSpot;
+
+    // Center the map
+    mapRef.current.setView([lat, lng], 16);
+
+    // Find and open the matching marker's popup
+    const matchingMarker = spotMarkersRef.current.find((marker) => {
+      const {lat: markerLat, lng: markerLng} = marker.getLatLng();
+      return (
+        parseFloat(markerLat).toFixed(5) === parseFloat(lat).toFixed(5) &&
+        parseFloat(markerLng).toFixed(5) === parseFloat(lng).toFixed(5)
+      );
+    });
+
+    if (matchingMarker) {
+      matchingMarker.openPopup();
+    }
+  }
+}, [focusedSpot]);
  
   return <div id="map" className="map-container" />;
 };
