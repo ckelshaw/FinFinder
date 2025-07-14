@@ -10,7 +10,7 @@
 - **Backend**: Express.js (ESM), Node.js
 - **Database**: Supabase (PostgreSQL + Auth)
 - **Authentication**: Clerk.dev
-- **APIs** (Planned): USGS (streamflow), OpenWeather (weather), GNIS or other stream/river data
+- **APIs** : USGS (streamflow), OpenWeather (weather), GNIS or other stream/river data
 
 ---
 
