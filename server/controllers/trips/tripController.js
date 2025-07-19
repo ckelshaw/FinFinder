@@ -42,7 +42,7 @@ export const getTripById = async (req, res) => {
 
   try {
     const { data, error } = await supabase
-      .from('trip_details_view') // Using your DB view
+      .from('trip_details_view') // Using the DB view
       .select('*')
       .eq('trip_id', trip_id)
       .single();

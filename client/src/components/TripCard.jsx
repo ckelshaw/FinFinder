@@ -50,8 +50,9 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
   }, []); 
 
     const fetchHistoricalData = async () => {
-      const tripDate = new Date(trip.date);
-      const weatherType = tripDate >= today ? 'forecast' : 'archive';
+      //const tripDate = format(new Date(trip.date), 'yyy-MM-dd');
+      const weatherType = trip.date >= today ? 'forecast' : 'archive'; //If the planned date is after/the day of then get the forecast
+      console.log(`today: ${today}, tripDate: ${trip.date}, weatherType: ${weatherType}`);
       try {
         // Run both requests in parallel
         const [weatherData, streamflowData] = await Promise.all([
