@@ -37,9 +37,14 @@ function Trip() { //Page to display details of a specific trip
       longitude: siteInfo.longitude,
       flow: data.stream_flow
     });
-    const spotData = await fetchSpotForTrip(tripId); //Pull the fishing spots for the trip
-    setFishingSpots(spotData);
-    console.log("Fishing Spots: ", spotData);
+    const spotData = await fetchSpotForTrip(tripId);
+    const normalizedSpots = spotData.map((spot) => ({ //Our DB stores lat and lng as latitude longitude. Leaflet expects lat lng.
+      ...spot,
+      lat: spot.lat ?? spot.latitude,
+      lng: spot.lng ?? spot.longitude,
+    }));
+    setFishingSpots(normalizedSpots);
+    console.log("Fishing Spots: ", normalizedSpots);
   }
   } catch (err) {
     console.error('Error fetching trip:', err);

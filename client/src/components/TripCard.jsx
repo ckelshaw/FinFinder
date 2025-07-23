@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 
 function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
   const [postTripNotes, setPostTripNotes] = useState('');
+  const [focusedSpot, setFocusedSpot] = useState(null);
   const { user } = useUser();
   const userId = user?.id;
   const selectedSite = {
@@ -26,6 +27,8 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
     siteCode: trip.usgs_site_code,
     flow: trip.stream_flow,
   };
+
+  console.log("Fishing Spots in Trip Card: ", fishingSpots);
 
   const today = format(new Date(), 'yyy-MM-dd');
 
@@ -187,6 +190,10 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
       });
   }
 
+  const selectSpot = (spot) => {
+    setFocusedSpot(spot);
+  }
+
   if (!trip || !usgsSiteLatLong.latitude) return <h1>Loading...</h1>;
 
   return (
@@ -208,6 +215,7 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
                   usgsSite={selectedSite}
                   showSaveBtn={false}
                   fishingSpots={fishingSpots}
+                  selectedSpot={selectSpot}
                 />
                 <div className="d-flex justify-content-center mb-4">
                   <label
@@ -223,7 +231,7 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
               {/* Right Column */}
               <div className="col-12 col-md-6 d-flex justify-content-center align-items-center">
                 {trip.usgs_site_code ? (
-                  <LeafletMap selectedSite={selectedSite} showButton={false} />
+                  <LeafletMap fishingSpots={fishingSpots} selectedSite={selectedSite} showButton={false} focusedSpot={focusedSpot} />
                 ) : (
                   <p className="text-warning">No USGS site data available</p>
                 )}

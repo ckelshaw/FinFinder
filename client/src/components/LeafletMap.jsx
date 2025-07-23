@@ -18,6 +18,7 @@ const LeafletMap = ({
   fishingSpots,
   focusedSpot,
 }) => {
+  console.log("Fishing Spots in Map: ", fishingSpots);
   // Fallback to default if site is missing or doesn't have lat/lng
   const defaultLat = 44.047313;
   const defaultLng = -114.191688;
@@ -31,13 +32,15 @@ const LeafletMap = ({
   const spotMarkersRef = useRef([]);
 
   const spotIcon = L.icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+    iconUrl:
+      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png",
+    shadowUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
 
   useEffect(() => {
     if (mapRef.current) return;
@@ -136,15 +139,15 @@ const LeafletMap = ({
 
   //Give the user the ability to click on the map and add a fishing spot
   useEffect(() => {
-    if(!mapRef.current || !isAddingSpot) return;
+    if (!mapRef.current || !isAddingSpot) return;
 
     const map = mapRef.current;
 
     const handleClick = (e) => {
       const { lat, lng } = e.latlng;
       const name = prompt("Enter a name for this fishing spot: ");
-      if(name){
-        onAddFishingSpot({ lat, lng, name })
+      if (name) {
+        onAddFishingSpot({ lat, lng, name });
       }
     };
 
@@ -157,44 +160,47 @@ const LeafletMap = ({
 
   //Render the fishing spots
   useEffect(() => {
-  if (!mapRef.current || !fishingSpots?.length) return;
+    if (!mapRef.current || !fishingSpots?.length) return;
 
-  // Remove old fishing spot markers
-  spotMarkersRef.current.forEach(marker => mapRef.current.removeLayer(marker));
-  spotMarkersRef.current = [];
+    // Remove old fishing spot markers
+    spotMarkersRef.current.forEach((marker) =>
+      mapRef.current.removeLayer(marker)
+    );
+    spotMarkersRef.current = [];
 
-  // Add new fishing spot markers
-  fishingSpots.forEach((spot) => {
-    const marker = L.marker([spot.lat, spot.lng], { icon: spotIcon })
-      .addTo(mapRef.current)
-      .bindPopup(`<strong>${spot.name}</strong>`);
-    spotMarkersRef.current.push(marker);
-  });
-}, [fishingSpots]);
-
-//Cetner the map on the selected Fishing Spot
-useEffect(() => {
-  if (focusedSpot && mapRef.current && spotMarkersRef.current.length > 0) {
-    const { lat, lng, name } = focusedSpot;
-
-    // Center the map
-    mapRef.current.setView([lat, lng], 16);
-
-    // Find and open the matching marker's popup
-    const matchingMarker = spotMarkersRef.current.find((marker) => {
-      const {lat: markerLat, lng: markerLng} = marker.getLatLng();
-      return (
-        parseFloat(markerLat).toFixed(5) === parseFloat(lat).toFixed(5) &&
-        parseFloat(markerLng).toFixed(5) === parseFloat(lng).toFixed(5)
-      );
+    // Add new fishing spot markers
+    fishingSpots.forEach((spot) => {
+      const marker = L.marker([spot.lat, spot.lng], { icon: spotIcon })
+        .addTo(mapRef.current)
+        .bindPopup(`<strong>${spot.name}</strong>`);
+      spotMarkersRef.current.push(marker);
     });
+  }, [fishingSpots]);
 
-    if (matchingMarker) {
-      matchingMarker.openPopup();
+  //Cetner the map on the selected Fishing Spot
+  useEffect(() => {
+    console.log("Focused Spot", focusedSpot);
+    if (focusedSpot && mapRef.current && spotMarkersRef.current.length > 0) {
+      const { lat, lng, name } = focusedSpot;
+
+      // Center the map
+      mapRef.current.setView([lat, lng], 16);
+
+      // Find and open the matching marker's popup
+      const matchingMarker = spotMarkersRef.current.find((marker) => {
+        const { lat: markerLat, lng: markerLng } = marker.getLatLng();
+        return (
+          parseFloat(markerLat).toFixed(5) === parseFloat(lat).toFixed(5) &&
+          parseFloat(markerLng).toFixed(5) === parseFloat(lng).toFixed(5)
+        );
+      });
+
+      if (matchingMarker) {
+        matchingMarker.openPopup();
+      }
     }
-  }
-}, [focusedSpot]);
- 
+  }, [focusedSpot]);
+
   return <div id="map" className="map-container" />;
 };
 
