@@ -74,3 +74,33 @@ export const updateTripWeather = async ({
   });
   return res.data;
 };
+
+//Save Photos to a trip
+export const uploadTripPhotos = async (photoMetadata, tripId, token) => {
+  console.log("photo MD: ", photoMetadata);
+  const formData = new FormData();
+  const metadata = [];
+
+  photoMetadata.forEach((item) => {
+    console.log("item.file instanceof File:", item.file instanceof File);
+    console.log("item.file.name:", item.file.name);
+    formData.append("photos", item.file); // Attach file
+    metadata.push({
+      spotId: item.spotId || null,
+    });
+  });
+
+  formData.append("metadata", JSON.stringify(metadata));
+  console.log("tripID", tripId);
+  for (let [key, value] of formData.entries()) {
+    console.log(`${key}:`, value);
+  }
+
+  const res = await api.post(`/trips/${tripId}/upload-photo`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};

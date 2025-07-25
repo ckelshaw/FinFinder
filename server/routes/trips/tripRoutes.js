@@ -1,4 +1,5 @@
 import express from 'express';
+import multer from 'multer';
 import {
   createTrip,
   markTripAsCompleted,
@@ -8,6 +9,7 @@ import {
   getTripById,
   updateTripWeather,
   updateTripRating,
+  uploadTripPhotos,
 } from '../../controllers/trips/tripController.js';
 
 const router = express.Router();
@@ -20,5 +22,12 @@ router.patch('/update-trip', updateTripStreamFlow); // Endpoint to update the st
 router.patch('/update-post-trip-notes', updatePostTripNotes); // Endpoint to update post-trip notes for a given trip
 router.patch('/update-weather', updateTripWeather); // Endpoint to update weather conditions for a given trip
 router.patch('/update-trip-rating', updateTripRating); //Endpoint to update a trips rating
+
+const upload = multer({ storage: multer.memoryStorage() }); //Keeps photos in memory for upload to db
+router.post('/:tripId/upload-photo',
+  upload.array('photos'),
+  uploadTripPhotos
+); 
+
 
 export default router;

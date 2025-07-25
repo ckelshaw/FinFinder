@@ -4,7 +4,8 @@ import {
   markTripAsCompleted,
   updatePostTripNotes as apiUpdatePostTripNotes,
   updateTripStreamflow,
-  updateTripWeather as apiUpdateTripWeather
+  updateTripWeather as apiUpdateTripWeather,
+  uploadTripPhotos as apiUploadPhotos
 } from '../api/trips';
 import { fetchHistoricalUSGSData } from '../api/rivers';
 import { fetchHistoricalWeatherData } from '../api/weather';
@@ -13,13 +14,17 @@ import LeafletMap from './LeafletMap';
 import FishingConditions from './FishingConditions';
 import TripRating from './TripRating';
 import { format } from 'date-fns';
+import UploadPhotoModal from './UploadPhotoModal';
+import { useAuth } from '@clerk/clerk-react';
 
 
 function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
   const [postTripNotes, setPostTripNotes] = useState('');
   const [focusedSpot, setFocusedSpot] = useState(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const { user } = useUser();
   const userId = user?.id;
+  const { getToken } = useAuth();
   const selectedSite = {
     latitude: trip.latitude,
     longitude: trip.longitude,
@@ -28,22 +33,35 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
     flow: trip.stream_flow,
   };
 
-  console.log("Fishing Spots in Trip Card: ", fishingSpots);
-
   const today = format(new Date(), 'yyy-MM-dd');
+
+  const uploadPhotos = () => {
+    setShowUploadModal(true);
+  }
+
+  const handleUpload = async (photoMetadata) => {
+    const token = await getToken();
+    console.log("Clerk Token: ", token);
+    apiUploadPhotos(photoMetadata, trip.trip_id, token)
+      .then((res) => {
+        console.log("Photos uploaded: ", res.data);
+        onTripUpdated();
+    })
+    .catch((err) => {
+      console.log("Unable to upload photos: ", err);
+    });
+  }
 
   useEffect(() => {
     const tripLastFetched = format(new Date(), 'yyy-MM-dd');
     if (tripLastFetched < today && !trip.completed) {
       const fetchAndUpdate = async () => {
-        console.log("entered if statement");
         //If the conditions have not been updated since the user viewed the trip and it is still a planned trip
         try {
           const data = await fetchHistoricalData();
           console.log("fetched data: ", data);
           await updateTripFlow(data.weather);
           await updateTripWeather(data.streamflow);
-          console.log("Updated trip with most up to date data.");
         } catch (err) {
           console.log("Failed to update trip with most up to date data: ", err);
         }
@@ -231,7 +249,12 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
               {/* Right Column */}
               <div className="col-12 col-md-6 d-flex justify-content-center align-items-center">
                 {trip.usgs_site_code ? (
-                  <LeafletMap fishingSpots={fishingSpots} selectedSite={selectedSite} showButton={false} focusedSpot={focusedSpot} />
+                  <LeafletMap
+                    fishingSpots={fishingSpots}
+                    selectedSite={selectedSite}
+                    showButton={false}
+                    focusedSpot={focusedSpot}
+                  />
                 ) : (
                   <p className="text-warning">No USGS site data available</p>
                 )}
@@ -268,24 +291,46 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
               </div>
             )}
             <div className="d-flex justify-content-between pt-2">
-              {!trip.completed && trip.date <= today && ( //Show the Save as Completed button if the trip is not completed and the trip date is today or in the past.
+              {!trip.completed &&
+                trip.date <= today && ( //Show the Save as Completed button if the trip is not completed and the trip date is today or in the past.
+                  <button
+                    type="button"
+                    className="btn primary-button rounded-pill px-4"
+                    onClick={saveAsCompleted}
+                  >
+                    Save as a Completed Trip!
+                  </button>
+                )}
+              {trip.completed && (
+                <TripRating
+                  trip={trip}
+                  userId={userId}
+                  readOnly={false}
+                ></TripRating>
+              )}
+              <div className="d-flex gap-2">
                 <button
                   type="button"
-                  className="btn primary-button rounded-pill px-4"
-                  onClick={saveAsCompleted}
+                  className="btn btn-primary rounded-pill px-4"
+                  onClick={uploadPhotos}
                 >
-                  Save as a Completed Trip!
+                  Upload Photos
                 </button>
-              )}
-              {trip.completed && (
-                <TripRating trip={trip} userId={userId} readOnly={false}></TripRating>
-              )}
-              <button
-                type="button"
-                className="btn btn-outline-danger rounded-pill px-4" //TODO: Add Delete later.
-              >
-                Delete
-              </button>
+                <button
+                  type="button"
+                  className="btn btn-outline-danger rounded-pill px-4" //TODO: Add Delete later.
+                >
+                  Delete
+                </button>
+              </div>
+              {showUploadModal && 
+                <UploadPhotoModal 
+                  show={showUploadModal} 
+                  onClose={() => setShowUploadModal(false)} 
+                  onUpload={handleUpload}
+                  fishingSpots={fishingSpots} 
+                />
+              }
             </div>
           </div>
         </div>

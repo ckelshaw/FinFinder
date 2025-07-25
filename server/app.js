@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 //import morgan from 'morgan';
 import dotenv from 'dotenv';
+import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
 
 // Load environment variables
 dotenv.config();
@@ -11,6 +12,7 @@ const app = express();
 // Middleware
 app.use(cors()); // Allow cross-origin requests
 app.use(express.json()); // Parse JSON request bodies
+app.use(ClerkExpressWithAuth());
 //app.use(morgan('dev')); // Log HTTP requests
 
 // Routes

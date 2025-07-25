@@ -1,4 +1,5 @@
 import supabase from '../../supabaseClient.js';
+import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
 
 // Helper to check trip ownership
 const verifyTripOwnership = async (tripId, userId) => {
@@ -156,110 +157,62 @@ export const createTrip = async (req, res) => {
   }
 };
 
-// Create Trip + Conditions
-// export const createTrip = async (req, res) => {
-//   const {
-//     user_id,
-//     river_id, //From GNIS and unique
-//     river_name,
-//     state,
-//     date,
-//     title,
-//     preTripNotes,
-//     maxTemp,
-//     minTemp,
-//     sunrise,
-//     sunset,
-//     precipChance,
-//     bPressure,
-//     streamFlow,
-//     siteCode,
-//     siteName,
-//     latitude,
-//     longitude,
-//     wind,
-//     windGusts,
-//     windDirection,
-//     last_fetched
-//   } = req.body;
+export const uploadTripPhotos = async (req, res) => {
+  const userId = req.auth?.userId;
 
-//   try {
-//     let finalRiverId = river_id;
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized — Clerk token missing or invalid.' });
+  }
 
-//     // Check if river exists
-//     const { data: existingRiver, error: riverCheckError } = await supabase
-//       .from('rivers')
-//       .select('id')
-//       .eq('id', river_id)
-//       .single();
+  const { tripId } = req.params;
+  const files = req.files;
+  const metadata = JSON.parse(req.body.metadata || '[]');
 
-//     if (riverCheckError && riverCheckError.code !== 'PGRST116') throw riverCheckError; // PGRST116 means no rows returned
+  if (!files || files.length === 0) {
+    return res.status(400).json({ error: 'No photos uploaded.' });
+  }
 
-//     if (!existingRiver) { //If river not found, insert it
-//       const { data: newRiver, error: riverInsertError } = await supabase
-//         .from('rivers')
-//         .insert([{ id: river_id, river_name, state }])
-//         .select()
-//         .single();
-//       if (riverInsertError) throw riverInsertError;
+  try {
+    const insertedPhotos = [];
 
-//       finalRiverId = newRiver.id;
-//     }
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const spotId = metadata[i]?.spotId || null;
+      const ext = file.originalname.split('.').pop();
+      const path = `trip_${tripId}/${Date.now()}_${i}.${ext}`;
 
-//     const { data: tripData, error: tripError } = await supabase
-//       .from('fishing_trip')
-//       .insert([
-//         {
-//           user_id,
-//           river: finalRiverId,
-//           date,
-//           title,
-//           pre_trip_notes: preTripNotes
-//         }
-//       ])
-//       .select();
+      const { error: uploadError } = await supabase.storage
+        .from('trip-photos')
+        .upload(path, file.buffer, { contentType: file.mimetype });
 
-//     if (tripError) throw tripError;
+      if (uploadError) throw uploadError;
 
-//     const trip_id = tripData[0].id;
+      const { publicUrl } = supabase.storage
+        .from('trip-photos')
+        .getPublicUrl(path).data;
 
-//     // Insert Conditions
-//     const { data: conditionsData, error: conditionsError } = await supabase
-//       .from('conditions')
-//       .insert([
-//         {
-//           trip_id,
-//           max_temp: maxTemp,
-//           min_temp: minTemp,
-//           sunrise,
-//           sunset,
-//           precipitation_chance: precipChance,
-//           barometric_pressure: bPressure,
-//           stream_flow: streamFlow,
-//           usgs_site_code: siteCode,
-//           usgs_site_name: siteName,
-//           latitude: latitude,
-//           longitude: longitude,
-//           wind_mph: wind,
-//           wind_gust: windGusts,
-//           wind_direction: windDirection,
-//           last_fetched: last_fetched
-//         }
-//       ])
-//       .select();
+      const insertResult = await supabase
+        .from('trip_photos')
+        .insert([
+          {
+            trip_id: tripId,
+            spot_id: spotId,
+            user_id: userId,
+            photo_url: publicUrl,
+            caption: '',
+          },
+        ])
+        .select();
 
-//     if (conditionsError) throw conditionsError;
+      insertedPhotos.push(insertResult.data?.[0]);
+    }
 
-//     res.status(201).json({
-//       message: 'Trip and conditions saved',
-//       trip: tripData[0],
-//       conditions: conditionsData[0]
-//     });
-
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
+    res.status(201).json({ message: 'Photos uploaded', photos: insertedPhotos });
+  } catch (err) {
+    console.error('Photo upload error:', err);
+    res.status(500).json({ error: 'Failed to upload photos' });
+  }
+};
 
 // Mark Trip as Completed
 export const markTripAsCompleted = async (req, res) => {
