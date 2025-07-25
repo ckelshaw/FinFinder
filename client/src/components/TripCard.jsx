@@ -5,7 +5,8 @@ import {
   updatePostTripNotes as apiUpdatePostTripNotes,
   updateTripStreamflow,
   updateTripWeather as apiUpdateTripWeather,
-  uploadTripPhotos as apiUploadPhotos
+  uploadTripPhotos as apiUploadPhotos,
+  getTripPhotos
 } from '../api/trips';
 import { fetchHistoricalUSGSData } from '../api/rivers';
 import { fetchHistoricalWeatherData } from '../api/weather';
@@ -16,12 +17,15 @@ import TripRating from './TripRating';
 import { format } from 'date-fns';
 import UploadPhotoModal from './UploadPhotoModal';
 import { useAuth } from '@clerk/clerk-react';
+import TripPhotoCarousel from './TripPhotoCarousel';
 
 
 function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
   const [postTripNotes, setPostTripNotes] = useState('');
   const [focusedSpot, setFocusedSpot] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [tripPhotos, setTripPhotos] = useState([]);
+  const [photoRefreshSignal, setPhotoRefreshSignal] = useState(0);
   const { user } = useUser();
   const userId = user?.id;
   const { getToken } = useAuth();
@@ -39,12 +43,12 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
     setShowUploadModal(true);
   }
 
-  const handleUpload = async (photoMetadata) => {
+  const handleUpload = async (photoMetadata, onProgress) => {
     const token = await getToken();
-    console.log("Clerk Token: ", token);
-    apiUploadPhotos(photoMetadata, trip.trip_id, token)
+    apiUploadPhotos(photoMetadata, trip.trip_id, token, onProgress)
       .then((res) => {
         console.log("Photos uploaded: ", res.data);
+        setPhotoRefreshSignal(prev => prev + 1); //rerender photo carousel
         onTripUpdated();
     })
     .catch((err) => {
@@ -53,13 +57,18 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
   }
 
   useEffect(() => {
+    getTripPhotos(trip.trip_id)
+      .then((photos) => setTripPhotos(photos))
+      .catch((err) => console.error("Failed to fetch trip photos: ", err));
+  }, [trip.trip_id]);
+
+  useEffect(() => {
     const tripLastFetched = format(new Date(), 'yyy-MM-dd');
     if (tripLastFetched < today && !trip.completed) {
       const fetchAndUpdate = async () => {
         //If the conditions have not been updated since the user viewed the trip and it is still a planned trip
         try {
           const data = await fetchHistoricalData();
-          console.log("fetched data: ", data);
           await updateTripFlow(data.weather);
           await updateTripWeather(data.streamflow);
         } catch (err) {
@@ -73,7 +82,6 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
     const fetchHistoricalData = async () => {
       //const tripDate = format(new Date(trip.date), 'yyy-MM-dd');
       const weatherType = trip.date >= today ? 'forecast' : 'archive'; //If the planned date is after/the day of then get the forecast
-      console.log(`today: ${today}, tripDate: ${trip.date}, weatherType: ${weatherType}`);
       try {
         // Run both requests in parallel
         const [weatherData, streamflowData] = await Promise.all([
@@ -90,9 +98,6 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
           }),
         ]);
 
-        console.log("Fetched weather data:", weatherData);
-        console.log("Fetched streamflow data:", streamflowData);
-
         // Combine and return both
         return {
           weather: weatherData,
@@ -107,7 +112,6 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
   const saveAsCompleted = async () => {
     //Get the historical streamflow and weather data and update the trip as completed
     const updatedData = await fetchHistoricalData();
-    console.log("updated data: ", updatedData);
     const formattedWeatherData = {
       id: trip.trip_id,
       barometric_pressure: updatedData.weather.bPressure,
@@ -121,7 +125,6 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
       actual_precipitation: updatedData.weather.precipitation,
       user_id: userId
     }
-    console.log(formattedWeatherData)
     apiUpdateTripWeather(formattedWeatherData)
       .then((res) => {
         console.log("weather updated: ", res.data)
@@ -169,7 +172,6 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
   }
 
   const updateTripFlow = (usgsData) =>{ //Update the trip with the new USGS data
-    console.log("usgs data: ", usgsData);
     updateTripStreamflow({
       id: trip.trip_id,
       stream_flow: usgsData?.[0]?.flow,
@@ -185,7 +187,6 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
   }
 
   const updateTripWeather = (weatherData) =>{ //Update the trip with the new USGS data
-    console.log("Updating trip with weather data:", weatherData);
     apiUpdateTripWeather({
       id: trip.trip_id,
       barometric_pressure: weatherData?.bPressure,
@@ -270,7 +271,7 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
                 /> */}
               </div>
             </div>
-
+            <TripPhotoCarousel tripId={trip.trip_id} refreshSignal={photoRefreshSignal} />
             {trip.completed && (
               <div className="mb-4">
                 <label
@@ -323,14 +324,14 @@ function TripCard({ trip, onTripUpdated, usgsSiteLatLong, fishingSpots }) {
                   Delete
                 </button>
               </div>
-              {showUploadModal && 
-                <UploadPhotoModal 
-                  show={showUploadModal} 
-                  onClose={() => setShowUploadModal(false)} 
+              {showUploadModal && (
+                <UploadPhotoModal
+                  show={showUploadModal}
+                  onClose={() => setShowUploadModal(false)}
                   onUpload={handleUpload}
-                  fishingSpots={fishingSpots} 
+                  fishingSpots={fishingSpots}
                 />
-              }
+              )}
             </div>
           </div>
         </div>

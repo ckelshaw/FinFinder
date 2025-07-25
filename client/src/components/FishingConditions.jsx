@@ -146,19 +146,6 @@ function FishingConditions({
     }
   };
 
-
-  // const fetchStreamflowData = async () => {
-  //   try {
-  //         const streamflowData = await fetchHistoricalUSGSData({
-  //           riverName: trip.river_name,
-  //           siteCode: trip.usgs_site_code,
-  //           date: trip.date
-  //       });
-  //       console.log("Fetched USGS data:", streamflowData);
-  // } catch (err) {
-  //   console.log("Failed to fetch streamflow data: ", err);
-  // }
-
   useEffect(() => {
     console.log("Show fishing conditions", tripCreation);
     if(tripCreation){
@@ -204,6 +191,7 @@ function FishingConditions({
                 bPressure={bPressure}
                 sunrise={sunrise}
                 sunset={sunset}
+                tripDate={trip.date}
               />
             ) : (
               <WeatherForecast
@@ -217,6 +205,7 @@ function FishingConditions({
                 bPressure={trip.barometric_pressure}
                 sunrise={trip.sunrise}
                 sunset={trip.sunset}
+                tripDate={trip.date}
               />
             )}
 

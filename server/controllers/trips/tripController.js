@@ -214,6 +214,25 @@ export const uploadTripPhotos = async (req, res) => {
   }
 };
 
+//Get Trip Photos
+export const getTripPhotos = async (req, res) => {
+  const { tripId } = req.params;
+
+  try {
+    const { data, error } = await supabase
+      .from('trip_photos')
+      .select('*')
+      .eq('trip_id', tripId);
+    
+      if(error) throw error;
+
+      res.status(200).json(data);
+  } catch (err) {
+    console.error('Error fetching photos:', err);
+    res.status(500).json({ error: 'Failed to fetch trip photos' });
+  }
+};
+
 // Mark Trip as Completed
 export const markTripAsCompleted = async (req, res) => {
   const { id, completed, user_id } = req.body;

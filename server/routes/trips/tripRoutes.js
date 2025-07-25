@@ -10,6 +10,7 @@ import {
   updateTripWeather,
   updateTripRating,
   uploadTripPhotos,
+  getTripPhotos,
 } from '../../controllers/trips/tripController.js';
 
 const router = express.Router();
@@ -28,6 +29,7 @@ router.post('/:tripId/upload-photo',
   upload.array('photos'),
   uploadTripPhotos
 ); 
+router.get('/:tripId/photos', getTripPhotos); //Endpoint to get photos for a given trip
 
 
 export default router;

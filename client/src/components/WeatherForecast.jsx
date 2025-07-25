@@ -1,14 +1,21 @@
 import React from 'react';
 import './FishingConditions.scss';
+import { format } from 'date-fns';
 
-function WeatherForecast({maxTemp, minTemp, wind, windGusts, windDirection, precipChance, bPressure, sunrise, sunset, actualPrecipitation}) {
+function WeatherForecast({maxTemp, minTemp, wind, windGusts, windDirection, precipChance, bPressure, sunrise, sunset, actualPrecipitation, tripDate}) {
   const formattedSunrise = new Date(sunrise).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
   const formattedSunset = new Date(sunset).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+  const today = format(new Date(), 'yyy-MM-dd');
 
     return (
         <>
         <div className="row pt-1 weather-forecast">
-              <h2 className="text-center white mb-4">Forecast</h2>
+          {tripDate < today ? (
+            <h2 className="text-center white mb-4">Forecast</h2>
+          ) : (
+            <h2 className="text-center white mb-4">Weather</h2>
+          )}
+              
 
               <div className="col-md-6 mb-2">
                 <div className="forecast-line border-bottom pb-1 mb-2">

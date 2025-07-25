@@ -76,14 +76,11 @@ export const updateTripWeather = async ({
 };
 
 //Save Photos to a trip
-export const uploadTripPhotos = async (photoMetadata, tripId, token) => {
-  console.log("photo MD: ", photoMetadata);
+export const uploadTripPhotos = async (photoMetadata, tripId, token, onProgress) => {
   const formData = new FormData();
   const metadata = [];
 
   photoMetadata.forEach((item) => {
-    console.log("item.file instanceof File:", item.file instanceof File);
-    console.log("item.file.name:", item.file.name);
     formData.append("photos", item.file); // Attach file
     metadata.push({
       spotId: item.spotId || null,
@@ -91,16 +88,23 @@ export const uploadTripPhotos = async (photoMetadata, tripId, token) => {
   });
 
   formData.append("metadata", JSON.stringify(metadata));
-  console.log("tripID", tripId);
-  for (let [key, value] of formData.entries()) {
-    console.log(`${key}:`, value);
-  }
 
   const res = await api.post(`/trips/${tripId}/upload-photo`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${token}`,
     },
+    onUploadProgress: (progressEvent) => {
+      const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+      if(onProgress) onProgress(percent);
+    }
   });
+  return res.data;
+};
+
+//Get Photos by Trip ID
+export const getTripPhotos = async (tripId) => {
+  const res = await api.get(`/trips/${tripId}/photos`);
+  console.log(res.data);
   return res.data;
 };

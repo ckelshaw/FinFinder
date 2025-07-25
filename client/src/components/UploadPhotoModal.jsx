@@ -1,9 +1,14 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
+import imageCompression from 'browser-image-compression';
+import heic2any from 'heic2any';
 
 const UploadPhotoModal = ({ show, onClose, onUpload, fishingSpots = [] }) => {
-  const [photoMetadata, setPhotoMetadata] = React.useState([]);
+  const [photoMetadata, setPhotoMetadata] = useState([]);
   const user_id = useUser().id;
+  const [progress, setProgress] = useState(0);
+  const [success, setSuccess] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     // Close modal on Esc
@@ -14,24 +19,74 @@ const UploadPhotoModal = ({ show, onClose, onUpload, fishingSpots = [] }) => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [show, onClose]);
 
-  const handleFileChange = (e) => {
-    const selectedFiles = [...e.target.files];
-    const metadata = selectedFiles.map(file => ({
-        file,
-        spotId: '', //default is none since it is optional
-        user_id: user_id,
-    }));
-    setPhotoMetadata(metadata);
-  };
+const handleFileChange = async (e) => {
+  const selectedFiles = [...e.target.files];
+  const compressedFiles = [];
 
-  const handleSubmit = () => {
+  for (const file of selectedFiles) {
+    let finalFile = file;
+
+    // ✅ Convert HEIC to JPEG
+    if (file.type === 'image/heic' || file.name.endsWith('.heic')) {
+      try {
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: 'image/jpeg',
+          quality: 0.9,
+        });
+
+        finalFile = new File([convertedBlob], file.name.replace(/\.heic$/, '.jpeg'), {
+          type: 'image/jpeg',
+        });
+      } catch (err) {
+        console.error('HEIC conversion failed:', err);
+        alert('Could not convert HEIC file. Try using JPEG or PNG.');
+        continue;
+      }
+    }
+
+    // ✅ Optional compression if needed
+    if (finalFile.size > 5 * 1024 * 1024) {
+      finalFile = await imageCompression(finalFile, {
+        maxSizeMB: 3,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      });
+    }
+
+    compressedFiles.push({
+      file: finalFile,
+      spotId: '',
+    });
+  }
+
+  setPhotoMetadata(compressedFiles);
+};
+
+  const handleSubmit = async () => {
     if (photoMetadata.length === 0) {
       alert("Please select at least one photo.");
       return;
     }
-    onUpload(photoMetadata);
-    setPhotoMetadata([]);
-    onClose();
+    setUploading(true);
+    setProgress(0);
+
+    try {
+      await onUpload(photoMetadata, setProgress);
+      setSuccess(true);
+      setTimeout(() => {
+        setPhotoMetadata([]);
+        setProgress(0);
+        setSuccess(false);
+        setUploading(false);
+        onClose();
+      }, 1500);
+    } catch (err) {
+      console.error("Upload failed", err);
+      alert("Upload failed. Please try again.");
+      setUploading(false);
+    }
+    
   };
 
   if (!show) return null;
@@ -83,29 +138,56 @@ const UploadPhotoModal = ({ show, onClose, onUpload, fishingSpots = [] }) => {
                       <small className="d-block text-truncate mb-2">
                         {item.file.name}
                       </small>
-                    {fishingSpots.length > 0 && (
+                      {fishingSpots.length > 0 && (
                         <select
-                        className="form-select"
-                        value={item.spotId}
-                        onChange={(e) => {
-                          const updated = [...photoMetadata];
-                          updated[idx].spotId = e.target.value;
-                          setPhotoMetadata(updated);
-                        }}
-                      >
-                        <option value="">No Spot</option>
-                        {fishingSpots.map((spot) => (
-                          <option key={spot.id} value={spot.id}>
-                            {spot.name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
+                          className="form-select"
+                          value={item.spotId}
+                          onChange={(e) => {
+                            const updated = [...photoMetadata];
+                            updated[idx].spotId = e.target.value;
+                            setPhotoMetadata(updated);
+                          }}
+                        >
+                          <option value="">No Spot</option>
+                          {fishingSpots.map((spot) => (
+                            <option key={spot.id} value={spot.id}>
+                              {spot.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
                   ))}
                 </div>
               )}
             </div>
+
+            {uploading && ( //TODO: update styling
+              <div className="my-3">
+                <label className="form-label">Uploading...</label>
+                <div className="progress">
+                  <div
+                    className="progress-bar"
+                    role="progressbar"
+                    style={{ width: `${progress}%` }}
+                    aria-valuenow={progress}
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    {progress}%
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {success && (
+              <div
+                className="alert alert-success mt-3 text-center"
+                role="alert"
+              >
+                Photos uploaded successfully!
+              </div>
+            )}
 
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={onClose}>
